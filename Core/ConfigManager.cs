@@ -8,7 +8,7 @@ namespace FlowWheel.Core
     public class AppProfile
     {
         public string ProcessName { get; set; } = "";
-        public float Sensitivity { get; set; } = 0.5f;
+        public float Sensitivity { get; set; } = 0.8f;
         public int Deadzone { get; set; } = 20;
         public bool UseCustomSettings { get; set; } = false;
         
@@ -18,7 +18,7 @@ namespace FlowWheel.Core
     public class AppConfig
     {
         public string Language { get; set; } = "en-US";
-        public float Sensitivity { get; set; } = 0.5f;
+        public float Sensitivity { get; set; } = 0.8f;
         public int Deadzone { get; set; } = 20;
         public string TriggerKey { get; set; } = "MiddleMouse";
         public string TriggerMode { get; set; } = "Toggle"; // "Toggle" or "Hold"

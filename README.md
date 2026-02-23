@@ -10,7 +10,7 @@
  
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
- [![Version](https://img.shields.io/badge/version-1.5.0-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.5.1-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
  [English](#english) | [中文](#中文)
 
@@ -24,11 +24,10 @@
 
 **FlowWheel** is a powerful Windows utility that brings smooth, browser-style "Middle-Click Auto-Scroll" to the entire operating system. It now features advanced productivity tools like **Inertia Scrolling**, **Multi-Screen Sync** and **Reading Mode**.
 
-### New in v1.5.0
-- **Inertia Scrolling**: Experience silky-smooth scrolling with physics! When you release the auto-scroll, the page glides to a stop instead of halting abruptly, just like on a smartphone.
-- **Global Hotkey Recorder**: Easily record any key combination to toggle auto-scroll on/off globally.
-- **Drag & Drop Filtering**: Simply drag `.exe` files into the Settings window to add them to the Blacklist/Whitelist.
-- **Auto-Update**: Automatically checks for updates on startup so you never miss new features.
+### New in v1.5.1
+- **Smoother Scrolling Feel**: Reduced jitter and improved responsiveness with a more stable scroll loop and smoother speed ramping.
+- **Better Update Experience**: More robust GitHub release checking with clearer error handling and improved download behavior.
+- **Higher Default Speed**: Default sensitivity is slightly increased for a faster out-of-box experience.
 
 ### Key Features
 
@@ -39,6 +38,32 @@
 - **Dynamic Speed**: Non-linear speed control—the further you move from the anchor, the faster it scrolls.
 - **Smart Opacity**: The overlay anchor automatically fades out when your mouse is close to it or when moving fast, preventing text occlusion.
 - **Modern UI**: Beautiful overlay with direction indicators and custom themes.
+
+### Architecture
+
+FlowWheel is built as a small set of focused modules with a clear event/data flow:
+
+1) **Input Capture (Global Hooks)**
+- `MouseHook` / `KeyboardHook`: Low-level global input hooks (User32) that receive raw OS events.
+
+2) **Interaction Orchestration**
+- `AutoScrollManager`: Interprets trigger mode (Toggle / Hold & Drag), starts/stops states, updates overlay, routes data to the engine.
+- `WindowManager`: Detects the target window/process under cursor and applies blacklist/whitelist rules.
+
+3) **Motion & Physics**
+- `ScrollEngine`: Calculates scroll speed, handles inertia/reading mode, and emits wheel events via `SendInput`.
+- `SyncScrollManager`: Optional multi-window/multi-monitor synchronized scrolling.
+
+4) **UI & Feedback**
+- `OverlayWindow`: Transparent overlay for anchor + direction indicators + reading mode state.
+- `SettingsWindow`: User-facing configuration UI.
+
+5) **Config & Updates**
+- `ConfigManager`: Loads/saves persistent settings (`config.json`).
+- `UpdateManager`: Checks latest GitHub Release and opens the release/asset download link.
+
+**Runtime flow (simplified)**
+`MouseHook/KeyboardHook` → `AutoScrollManager` → `ScrollEngine` → `SendInput (Wheel/HWheel)` → (optional) `SyncScrollManager`
 
 ### Installation
 
@@ -91,11 +116,10 @@ Manage all your preferences in the new Settings dashboard:
 
 **FlowWheel** 是一款强大的 Windows 全局自动滚动工具，它不仅将浏览器的"中键无极滚屏"体验带到了系统每个角落，还新增了**惯性滚动**、**多屏同步**和**阅读模式**等生产力功能。
 
-###  v1.5.0 新功能
-- **惯性滚动 (Inertia Scrolling)**：丝般顺滑的物理手感！松开自动滚动时，页面会像手机屏幕一样带有阻尼感地滑行停止，而不是生硬地骤停。
-- **全局快捷键录制**：支持录制任意组合键，一键开启/暂停全局自动滚动。
-- **拖拽添加过滤**：直接将 `.exe` 文件拖入设置界面的黑/白名单列表即可添加，无需手动输入进程名。
-- **自动检查更新**：启动时自动检查新版本，确保你始终使用最新功能。
+###  v1.5.1 新功能
+- **更丝滑的滚动手感**：滚动节拍更稳定、响应更及时，并改善了速度的平滑过渡。
+- **更好的更新体验**：GitHub Release 检查更健壮，错误提示更清晰，下载行为更符合预期。
+- **更高的默认速度**：默认灵敏度略微上调。
 
 ### 核心功能
 
@@ -106,6 +130,32 @@ Manage all your preferences in the new Settings dashboard:
 - **智能透明度**：当鼠标靠近锚点或快速滚动时，图标自动变淡，不再遮挡视线。
 - **动态变速**：基于距离的非线性速度控制，精准把控浏览节奏。
 - **现代化 UI**：提供美观的视觉反馈和方向指示。
+
+### 架构说明
+
+FlowWheel 由一组职责清晰的模块构成，整体数据/事件流非常直接：
+
+1) **输入捕获（全局钩子）**
+- `MouseHook` / `KeyboardHook`：基于 User32 的低级全局输入钩子，接收系统原始事件。
+
+2) **交互编排**
+- `AutoScrollManager`：解析触发模式（Toggle / Hold & Drag）、控制开始/停止状态、驱动 Overlay 更新，并把数据交给引擎。
+- `WindowManager`：识别鼠标下的目标窗口/进程，应用黑名单/白名单规则。
+
+3) **运动与物理**
+- `ScrollEngine`：计算滚动速度、处理惯性/阅读模式，通过 `SendInput` 发送滚轮事件。
+- `SyncScrollManager`：可选的多窗口/多屏同步滚动。
+
+4) **UI 反馈**
+- `OverlayWindow`：透明 Overlay（锚点、方向指示、阅读模式状态）。
+- `SettingsWindow`：设置界面与配置入口。
+
+5) **配置与更新**
+- `ConfigManager`：加载/保存持久化配置（`config.json`）。
+- `UpdateManager`：检查 GitHub 最新 Release，并打开 Release 页面或资产下载链接。
+
+**运行时简化流程**
+`MouseHook/KeyboardHook` → `AutoScrollManager` → `ScrollEngine` → `SendInput (Wheel/HWheel)` →（可选）`SyncScrollManager`
 
 ### 安装方法
 

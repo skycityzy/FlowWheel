@@ -42,13 +42,20 @@ namespace FlowWheel.Core
                 _keyboardHook.KeyboardEvent += OnKeyboardEvent;
             }
             
-            // Create Overlay on UI Thread
-            Application.Current.Dispatcher.Invoke(() =>
+            var dispatcher = Application.Current.Dispatcher;
+            if (dispatcher.CheckAccess())
             {
                 _overlay = new OverlayWindow();
-                // Ensure handle is created
-                var _ = new System.Windows.Interop.WindowInteropHelper(_overlay).EnsureHandle();
-            });
+                var _ = new WindowInteropHelper(_overlay).EnsureHandle();
+            }
+            else
+            {
+                dispatcher.InvokeAsync(() =>
+                {
+                    _overlay = new OverlayWindow();
+                    var _ = new WindowInteropHelper(_overlay).EnsureHandle();
+                });
+            }
         }
 
         private void OnKeyboardEvent(object? sender, KeyboardEventArgs e)
@@ -236,7 +243,7 @@ namespace FlowWheel.Core
                             
                             // Visual feedback: Hide anchor but maybe keep some indication? 
                             // For now, let's just hide anchor to mimic "throw"
-                            Application.Current.Dispatcher.Invoke(() => _overlay?.HideAnchor());
+                            Application.Current.Dispatcher.InvokeAsync(() => _overlay?.HideAnchor());
                         }
                         else
                         {
@@ -270,7 +277,7 @@ namespace FlowWheel.Core
                     _engine.ReleaseDrag();
                     
                     // Hide anchor immediately for "Throw" feel
-                    Application.Current.Dispatcher.Invoke(() => _overlay?.HideAnchor());
+                    Application.Current.Dispatcher.InvokeAsync(() => _overlay?.HideAnchor());
                     return;
                 }
                 // Toggle Mode: Ignore Up
@@ -319,7 +326,7 @@ namespace FlowWheel.Core
             _isActive = true;
             _currentOrigin = origin;
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 if (_overlay == null) return;
                 
@@ -355,7 +362,7 @@ namespace FlowWheel.Core
             _currentOrigin = origin;
             
             // Show Visuals
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 if (_overlay == null) return;
 
@@ -419,7 +426,7 @@ namespace FlowWheel.Core
             _isActive = false;
             _engine.Stop();
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 _overlay?.SetReadingMode(false);
                 _overlay?.HideAnchor();
@@ -434,7 +441,7 @@ namespace FlowWheel.Core
             {
                 _keyboardHook.KeyboardEvent -= OnKeyboardEvent;
             }
-            Application.Current.Dispatcher.Invoke(() => _overlay?.Close());
+            Application.Current.Dispatcher.InvokeAsync(() => _overlay?.Close());
         }
     }
 }

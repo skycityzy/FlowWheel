@@ -19,15 +19,21 @@ namespace FlowWheel.Core
         private volatile bool _isRunning = false;
         private readonly object _lock = new object();
         private double _accumulatedDelta = 0;
+        private int _runId = 0;
+        private double _filteredSpeedV = 0;
+        private double _filteredSpeedH = 0;
 
         public ScrollState CurrentState { get; private set; } = ScrollState.Idle;
         
         // Settings
-        public float Sensitivity { get; set; } = 0.5f; // Speed multiplier
+        public float Sensitivity { get; set; } = 0.8f; // Speed multiplier
         public int Deadzone { get; set; } = 20; // Pixels
         public int TickRate { get; set; } = 120; // Updates per second
         public int MinStep { get; set; } = 1; // Minimum delta to send (fix for Explorer/Win32)
         public double Friction { get; set; } = 5.0; // Friction factor
+        public double ResponseTime { get; set; } = 0.04;
+        public double AxisLockRatio { get; set; } = 1.8;
+        public int SoftStartRange { get; set; } = 12;
 
         // Current State
         private double _currentSpeed = 0; // Delta per second
@@ -54,6 +60,7 @@ namespace FlowWheel.Core
 
         public void StartReadingMode(double initialSpeed)
         {
+            int runId;
             lock (_lock)
             {
                 CurrentState = ScrollState.ReadingMode;
@@ -61,12 +68,14 @@ namespace FlowWheel.Core
                 _currentSpeed = -initialSpeed; // Negative is down (usually)
                 _currentHSpeed = 0;
                 _accumulatedDelta = 0;
+                _accumulatedHDelta = 0;
+                _filteredSpeedV = _currentSpeed;
+                _filteredSpeedH = 0;
+                _runId++;
+                runId = _runId;
                 
-                if (!_isRunning)
-                {
-                    _isRunning = true;
-                    Task.Run(Loop);
-                }
+                _isRunning = true;
+                Task.Run(() => Loop(runId));
             }
         }
 
@@ -84,6 +93,7 @@ namespace FlowWheel.Core
 
         public void StartDrag(NativeMethods.POINT origin)
         {
+            int runId;
             lock (_lock)
             {
                 if (_isRunning && CurrentState == ScrollState.ReadingMode) return;
@@ -99,13 +109,17 @@ namespace FlowWheel.Core
                 _accumulatedDelta = 0;
                 _currentHSpeed = 0;
                 _accumulatedHDelta = 0;
+                _filteredSpeedV = 0;
+                _filteredSpeedH = 0;
+                _runId++;
+                runId = _runId;
 
                 if (IsSyncEnabled)
                 {
                     _syncManager.UpdateTargets(origin);
                 }
 
-                Task.Run(Loop);
+                Task.Run(() => Loop(runId));
             }
         }
 
@@ -145,6 +159,11 @@ namespace FlowWheel.Core
             {
                 CurrentState = ScrollState.Idle;
                 _isRunning = false;
+                _runId++;
+                _accumulatedDelta = 0;
+                _accumulatedHDelta = 0;
+                _filteredSpeedV = 0;
+                _filteredSpeedH = 0;
             }
         }
 
@@ -192,7 +211,14 @@ namespace FlowWheel.Core
             }
             else
             {
-                double rawSpeed = (distY - Deadzone) * Sensitivity;
+                double effective = distY - Deadzone;
+                double rawSpeed = effective * Sensitivity;
+                if (SoftStartRange > 0 && effective < SoftStartRange)
+                {
+                    double t = effective / SoftStartRange;
+                    t = t * t * (3.0 - 2.0 * t);
+                    rawSpeed *= t;
+                }
                 if (rawSpeed > 5000) rawSpeed = 5000;
 
                 if (dy > 0) // Mouse Down -> Scroll Down (Negative)
@@ -215,7 +241,14 @@ namespace FlowWheel.Core
             }
             else
             {
-                double rawHSpeed = (distX - Deadzone) * Sensitivity;
+                double effective = distX - Deadzone;
+                double rawHSpeed = effective * Sensitivity;
+                if (SoftStartRange > 0 && effective < SoftStartRange)
+                {
+                    double t = effective / SoftStartRange;
+                    t = t * t * (3.0 - 2.0 * t);
+                    rawHSpeed *= t;
+                }
                 if (rawHSpeed > 5000) rawHSpeed = 5000;
 
                 if (dx > 0) // Mouse Right -> Scroll Right
@@ -227,15 +260,31 @@ namespace FlowWheel.Core
                     _currentHSpeed = -rawHSpeed;
                 }
             }
+
+            if (AxisLockRatio > 1.0 && distX >= Deadzone && distY >= Deadzone)
+            {
+                if (distY > distX * AxisLockRatio)
+                {
+                    _currentHSpeed = 0;
+                }
+                else if (distX > distY * AxisLockRatio)
+                {
+                    _currentSpeed = 0;
+                }
+            }
         }
 
-        private async Task Loop()
+        private async Task Loop(int runId)
         {
             long lastTick = Stopwatch.GetTimestamp();
-            double interval = 1.0 / TickRate;
+            long intervalTicks = (long)(Stopwatch.Frequency / (double)TickRate);
+            if (intervalTicks < 1) intervalTicks = 1;
+            long nextTick = lastTick;
 
-            while (_isRunning)
+            while (true)
             {
+                if (!_isRunning || runId != Volatile.Read(ref _runId)) break;
+
                 long currentTick = Stopwatch.GetTimestamp();
                 double dt = (currentTick - lastTick) / (double)Stopwatch.Frequency;
                 lastTick = currentTick;
@@ -253,6 +302,8 @@ namespace FlowWheel.Core
 
                     targetSpeedV = _inertiaSpeedV;
                     targetSpeedH = _inertiaSpeedH;
+                    _filteredSpeedV = targetSpeedV;
+                    _filteredSpeedH = targetSpeedH;
 
                     // Stop if too slow
                     if (Math.Abs(_inertiaSpeedV) < 10 && Math.Abs(_inertiaSpeedH) < 10)
@@ -261,6 +312,22 @@ namespace FlowWheel.Core
                         {
                             Stop();
                         }
+                    }
+                }
+                else
+                {
+                    if (ResponseTime > 0.0001 && dt > 0)
+                    {
+                        double alpha = 1.0 - Math.Exp(-dt / ResponseTime);
+                        _filteredSpeedV += (targetSpeedV - _filteredSpeedV) * alpha;
+                        _filteredSpeedH += (targetSpeedH - _filteredSpeedH) * alpha;
+                        targetSpeedV = _filteredSpeedV;
+                        targetSpeedH = _filteredSpeedH;
+                    }
+                    else
+                    {
+                        _filteredSpeedV = targetSpeedV;
+                        _filteredSpeedH = targetSpeedH;
                     }
                 }
 
@@ -309,9 +376,17 @@ namespace FlowWheel.Core
                     _accumulatedHDelta = 0;
                 }
 
-                int delayMs = (int)(interval * 1000);
-                if (delayMs < 1) delayMs = 1;
-                await Task.Delay(delayMs);
+                nextTick += intervalTicks;
+                long now = Stopwatch.GetTimestamp();
+                long remaining = nextTick - now;
+                if (remaining > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(remaining / (double)Stopwatch.Frequency)).ConfigureAwait(false);
+                }
+                else if (-remaining > intervalTicks * 5)
+                {
+                    nextTick = now;
+                }
             }
         }
 

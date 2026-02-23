@@ -92,26 +92,34 @@ namespace FlowWheel.UI
         {
             try
             {
-                var (hasUpdate, latestVersion, downloadUrl, releaseNotes) = await UpdateManager.CheckForUpdatesAsync();
+                var r = await UpdateManager.CheckForUpdatesAsync();
 
-                if (hasUpdate)
+                if (!string.IsNullOrWhiteSpace(r.ErrorMessage))
                 {
-                     // Show notification or small prompt instead of full blocking modal on startup?
-                     // For now, let's just use the same logic but maybe non-blocking if we had a toast system.
-                     // But user asked for "Check on startup", so a dialog is acceptable if update exists.
-                     // To avoid annoyance, maybe only if it's a new update we haven't ignored? 
-                     // For simplicity, just show the dialog.
+                    System.Diagnostics.Debug.WriteLine(r.ErrorMessage);
+                    return;
+                }
+
+                if (r.HasUpdate)
+                {
+                    var notes = string.IsNullOrWhiteSpace(r.ReleaseNotes)
+                        ? ""
+                        : "\n\nRelease notes (excerpt):\n" + Truncate(r.ReleaseNotes, 600);
+
                     var result = System.Windows.MessageBox.Show(
-                        $"A new version {latestVersion} is available!\n\nDo you want to download it now?",
+                        $"A new version {r.LatestTag} is available!\nCurrent: v{r.CurrentVersion.Major}.{r.CurrentVersion.Minor}.{r.CurrentVersion.Build}\n\nDo you want to download it now?{notes}",
                         "Update Available",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Information);
 
                     if (result == MessageBoxResult.Yes)
                     {
+                        var url = !string.IsNullOrWhiteSpace(r.AssetDownloadUrl) ? r.AssetDownloadUrl : r.ReleasePageUrl;
+                        if (string.IsNullOrWhiteSpace(url)) return;
+
                         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                         {
-                            FileName = downloadUrl,
+                            FileName = url,
                             UseShellExecute = true
                         });
                     }
@@ -400,21 +408,34 @@ namespace FlowWheel.UI
 
             try
             {
-                var (hasUpdate, latestVersion, downloadUrl, releaseNotes) = await UpdateManager.CheckForUpdatesAsync();
+                var r = await UpdateManager.CheckForUpdatesAsync();
 
-                if (hasUpdate)
+                if (!string.IsNullOrWhiteSpace(r.ErrorMessage))
                 {
+                    System.Windows.MessageBox.Show(r.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                if (r.HasUpdate)
+                {
+                    var notes = string.IsNullOrWhiteSpace(r.ReleaseNotes)
+                        ? ""
+                        : "\n\nRelease notes (excerpt):\n" + Truncate(r.ReleaseNotes, 1200);
+
                     var result = System.Windows.MessageBox.Show(
-                        $"A new version {latestVersion} is available!\n\nDo you want to download it now?",
+                        $"A new version {r.LatestTag} is available!\nCurrent: v{r.CurrentVersion.Major}.{r.CurrentVersion.Minor}.{r.CurrentVersion.Build}\n\nDo you want to download it now?{notes}",
                         "Update Available",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Information);
 
                     if (result == MessageBoxResult.Yes)
                     {
+                        var url = !string.IsNullOrWhiteSpace(r.AssetDownloadUrl) ? r.AssetDownloadUrl : r.ReleasePageUrl;
+                        if (string.IsNullOrWhiteSpace(url)) return;
+
                         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                         {
-                            FileName = downloadUrl,
+                            FileName = url,
                             UseShellExecute = true
                         });
                     }
@@ -432,6 +453,12 @@ namespace FlowWheel.UI
             {
                 if (btn != null) btn.IsEnabled = true;
             }
+        }
+
+        private static string Truncate(string s, int max)
+        {
+            if (string.IsNullOrEmpty(s) || s.Length <= max) return s;
+            return s.Substring(0, max) + "\n...(truncated)";
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

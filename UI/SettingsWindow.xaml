@@ -196,9 +196,9 @@
                     <StackPanel>
                         <Grid>
                             <TextBlock Text="{DynamicResource LabelScrollSpeed}" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="SpeedValueText" Text="0.5x" HorizontalAlignment="Right" Foreground="#666"/>
+                            <TextBlock x:Name="SpeedValueText" Text="0.8x" HorizontalAlignment="Right" Foreground="#666"/>
                         </Grid>
-                        <Slider x:Name="SpeedSlider" Minimum="0.1" Maximum="3.0" Value="0.5" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="SpeedSlider_ValueChanged"/>
+                        <Slider x:Name="SpeedSlider" Minimum="0.1" Maximum="3.0" Value="0.8" TickFrequency="0.1" IsSnapToTickEnabled="True" ValueChanged="SpeedSlider_ValueChanged"/>
                         
                         <Grid Margin="0,15,0,0">
                             <TextBlock Text="{DynamicResource LabelDeadzone}" VerticalAlignment="Center"/>
