@@ -23,6 +23,8 @@ namespace FlowWheel.Core
         private double _filteredSpeedV = 0;
         private double _filteredSpeedH = 0;
 
+        public event EventHandler? Stopped;
+
         public ScrollState CurrentState { get; private set; } = ScrollState.Idle;
         
         // Settings
@@ -155,6 +157,7 @@ namespace FlowWheel.Core
 
         public void Stop()
         {
+            bool wasRunning = _isRunning;
             lock (_lock)
             {
                 CurrentState = ScrollState.Idle;
@@ -164,6 +167,11 @@ namespace FlowWheel.Core
                 _accumulatedHDelta = 0;
                 _filteredSpeedV = 0;
                 _filteredSpeedH = 0;
+            }
+            
+            if (wasRunning)
+            {
+                Stopped?.Invoke(this, EventArgs.Empty);
             }
         }
 

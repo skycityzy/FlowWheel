@@ -4,43 +4,60 @@
     <s:String x:Key="WindowTitle">FlowWheel Settings</s:String>
     <s:String x:Key="AppName">FlowWheel</s:String>
     
-    <!-- Group Headers -->
-    <s:String x:Key="GroupGeneral">General</s:String>
-    <s:String x:Key="GroupBehavior">Behavior</s:String>
-    <s:String x:Key="GroupSensitivity">Sensitivity</s:String>
-    <s:String x:Key="GroupShortcuts">Shortcuts</s:String>
+    <!-- Navigation -->
+    <s:String x:Key="NavGeneral">General</s:String>
+    <s:String x:Key="NavBehavior">Behavior</s:String>
+    <s:String x:Key="NavFilter">App Filter</s:String>
+    <s:String x:Key="NavShortcuts">Shortcuts</s:String>
+    <s:String x:Key="NavAbout">About</s:String>
+    
+    <!-- Sections -->
+    <s:String x:Key="SectionLanguage">Language</s:String>
+    <s:String x:Key="SectionStatus">Status</s:String>
+    <s:String x:Key="SectionTrigger">Trigger Options</s:String>
+    <s:String x:Key="SectionTriggerMode">Trigger Mode</s:String>
+    <s:String x:Key="SectionTriggerKey">Trigger Key</s:String>
+    <s:String x:Key="SectionSensitivity">Sensitivity</s:String>
+    <s:String x:Key="SectionFilterMode">Filter Mode</s:String>
+    <s:String x:Key="SectionAppList">Application List</s:String>
+    <s:String x:Key="SectionHotkey">Global Hotkey</s:String>
+    <s:String x:Key="SectionLinks">Links</s:String>
+    <s:String x:Key="SectionSupport">Support the Developer</s:String>
+    <s:String x:Key="DescSupport">Buy me a coffee ☕</s:String>
     
     <!-- Settings -->
     <s:String x:Key="LabelLanguage">Language</s:String>
     <s:String x:Key="CheckEnable">Enable Auto-Scroll</s:String>
+    <s:String x:Key="DescEnable">Turn on/off the auto-scroll functionality</s:String>
+    <s:String x:Key="CheckStartup">Start with Windows</s:String>
+    <s:String x:Key="DescStartup">Automatically launch FlowWheel on system startup</s:String>
     <s:String x:Key="CheckSyncScroll">Multi-Screen Sync Scroll</s:String>
+    <s:String x:Key="DescSyncScroll">Scroll multiple windows simultaneously</s:String>
     <s:String x:Key="CheckReadingMode">Enable Reading Mode (Double Click)</s:String>
-    <s:String x:Key="LabelTriggerMode">Trigger Mode</s:String>
+    <s:String x:Key="DescReadingMode">Double-click middle mouse to activate constant scroll</s:String>
     <s:String x:Key="LabelTriggerKey">Trigger Key</s:String>
     <s:String x:Key="KeyMiddleMouse">Middle Mouse Button</s:String>
     <s:String x:Key="KeyXButton1">Mouse Side Button 1 (Back)</s:String>
     <s:String x:Key="KeyXButton2">Mouse Side Button 2 (Forward)</s:String>
-    <s:String x:Key="KeyAlt">Alt Key</s:String>
-    <s:String x:Key="KeyControl">Ctrl Key</s:String>
-    <s:String x:Key="KeyShift">Shift Key</s:String>
     <s:String x:Key="RadioClickToggle">Click Toggle (Recommended)</s:String>
     <s:String x:Key="RadioHoldDrag">Hold &amp; Drag</s:String>
-    <s:String x:Key="TooltipComingSoon">Coming Soon</s:String>
     
     <s:String x:Key="LabelScrollSpeed">Scroll Speed</s:String>
     <s:String x:Key="LabelDeadzone">Deadzone (Radius)</s:String>
     <s:String x:Key="DescDeadzone">Area where movement is ignored</s:String>
     
     <s:String x:Key="LabelToggleShortcut">Global Hotkey (Toggle)</s:String>
-    <s:String x:Key="BtnApply">Apply</s:String>
+    <s:String x:Key="DescToggleShortcut">Click the box and press keys to record a hotkey</s:String>
 
     <!-- Filtering -->
-    <s:String x:Key="GroupFiltering">App Filtering</s:String>
-    <s:String x:Key="LabelFilterMode">Mode:</s:String>
     <s:String x:Key="RadioBlacklist">Blacklist (Block selected)</s:String>
     <s:String x:Key="RadioWhitelist">Whitelist (Allow only selected)</s:String>
 
     <s:String x:Key="BtnCloseToTray">Close to Tray</s:String>
+    
+    <!-- Dark Mode -->
+    <s:String x:Key="LabelDarkMode">Dark Mode</s:String>
+    <s:String x:Key="DescDarkMode">Switch to dark theme</s:String>
     
     <!-- Tray Menu -->
     <s:String x:Key="TraySettings">Settings</s:String>
@@ -49,6 +66,7 @@
     <s:String x:Key="TrayRunning">FlowWheel (Running)</s:String>
     <s:String x:Key="TrayPaused">FlowWheel (Paused)</s:String>
 
-    <s:String x:Key="GroupAbout">About</s:String>
     <s:String x:Key="BtnCheckUpdate">Check for Updates</s:String>
+    <s:String x:Key="BtnLicense">License</s:String>
+    <s:String x:Key="AppDescription">Smooth, browser-style middle-click auto-scroll for Windows with inertia and multi-screen sync.</s:String>
 </ResourceDictionary>

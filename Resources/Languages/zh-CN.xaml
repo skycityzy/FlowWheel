@@ -2,45 +2,62 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
     <s:String x:Key="WindowTitle">FlowWheel 设置</s:String>
-    <s:String x:Key="AppName">FlowWheel 滚轮助手</s:String>
+    <s:String x:Key="AppName">FlowWheel</s:String>
     
-    <!-- Group Headers -->
-    <s:String x:Key="GroupGeneral">常规</s:String>
-    <s:String x:Key="GroupBehavior">行为设置</s:String>
-    <s:String x:Key="GroupSensitivity">灵敏度</s:String>
-    <s:String x:Key="GroupShortcuts">快捷键</s:String>
+    <!-- Navigation -->
+    <s:String x:Key="NavGeneral">常规</s:String>
+    <s:String x:Key="NavBehavior">行为</s:String>
+    <s:String x:Key="NavFilter">应用过滤</s:String>
+    <s:String x:Key="NavShortcuts">快捷键</s:String>
+    <s:String x:Key="NavAbout">关于</s:String>
+    
+    <!-- Sections -->
+    <s:String x:Key="SectionLanguage">语言</s:String>
+    <s:String x:Key="SectionStatus">状态</s:String>
+    <s:String x:Key="SectionTrigger">触发选项</s:String>
+    <s:String x:Key="SectionTriggerMode">触发模式</s:String>
+    <s:String x:Key="SectionTriggerKey">触发按键</s:String>
+    <s:String x:Key="SectionSensitivity">灵敏度</s:String>
+    <s:String x:Key="SectionFilterMode">过滤模式</s:String>
+    <s:String x:Key="SectionAppList">应用列表</s:String>
+    <s:String x:Key="SectionHotkey">全局快捷键</s:String>
+    <s:String x:Key="SectionLinks">链接</s:String>
+    <s:String x:Key="SectionSupport">支持开发者</s:String>
+    <s:String x:Key="DescSupport">请我喝杯咖啡 ☕</s:String>
     
     <!-- Settings -->
-    <s:String x:Key="LabelLanguage">语言 / Language</s:String>
+    <s:String x:Key="LabelLanguage">语言</s:String>
     <s:String x:Key="CheckEnable">启用自动滚屏</s:String>
+    <s:String x:Key="DescEnable">开启或关闭自动滚屏功能</s:String>
+    <s:String x:Key="CheckStartup">开机自启动</s:String>
+    <s:String x:Key="DescStartup">系统启动时自动运行 FlowWheel</s:String>
     <s:String x:Key="CheckSyncScroll">多屏/分屏 同步滚动</s:String>
+    <s:String x:Key="DescSyncScroll">同时滚动多个窗口</s:String>
     <s:String x:Key="CheckReadingMode">启用阅读模式 (双击中键)</s:String>
-    <s:String x:Key="LabelTriggerMode">触发模式</s:String>
+    <s:String x:Key="DescReadingMode">双击鼠标中键激活持续滚动</s:String>
     <s:String x:Key="LabelTriggerKey">触发按键</s:String>
     <s:String x:Key="KeyMiddleMouse">鼠标中键</s:String>
     <s:String x:Key="KeyXButton1">鼠标侧键 1 (后退)</s:String>
     <s:String x:Key="KeyXButton2">鼠标侧键 2 (前进)</s:String>
-    <s:String x:Key="KeyAlt">Alt 键</s:String>
-    <s:String x:Key="KeyControl">Ctrl 键</s:String>
-    <s:String x:Key="KeyShift">Shift 键</s:String>
     <s:String x:Key="RadioClickToggle">点击切换 (推荐)</s:String>
     <s:String x:Key="RadioHoldDrag">按住拖拽</s:String>
-    <s:String x:Key="TooltipComingSoon">即将推出</s:String>
     
     <s:String x:Key="LabelScrollSpeed">滚动速度</s:String>
     <s:String x:Key="LabelDeadzone">死区半径 (防误触)</s:String>
     <s:String x:Key="DescDeadzone">在此范围内移动鼠标不会触发滚动</s:String>
     
     <s:String x:Key="LabelToggleShortcut">全局快捷键 (开启/暂停)</s:String>
-    <s:String x:Key="BtnApply">应用</s:String>
+    <s:String x:Key="DescToggleShortcut">点击输入框并按下按键组合来录制快捷键</s:String>
 
     <!-- Filtering -->
-    <s:String x:Key="GroupFiltering">应用过滤</s:String>
-    <s:String x:Key="LabelFilterMode">模式:</s:String>
     <s:String x:Key="RadioBlacklist">黑名单 (屏蔽以下)</s:String>
     <s:String x:Key="RadioWhitelist">白名单 (仅允许以下)</s:String>
 
     <s:String x:Key="BtnCloseToTray">最小化到托盘</s:String>
+    
+    <!-- Dark Mode -->
+    <s:String x:Key="LabelDarkMode">暗夜模式</s:String>
+    <s:String x:Key="DescDarkMode">切换到深色主题</s:String>
     
     <!-- Tray Menu -->
     <s:String x:Key="TraySettings">设置</s:String>
@@ -49,6 +66,7 @@
     <s:String x:Key="TrayRunning">FlowWheel (运行中)</s:String>
     <s:String x:Key="TrayPaused">FlowWheel (已暂停)</s:String>
 
-    <s:String x:Key="GroupAbout">关于</s:String>
     <s:String x:Key="BtnCheckUpdate">检查更新</s:String>
+    <s:String x:Key="BtnLicense">许可证</s:String>
+    <s:String x:Key="AppDescription">为 Windows 带来流畅的浏览器风格中键自动滚动，支持惯性和多屏同步。</s:String>
 </ResourceDictionary>

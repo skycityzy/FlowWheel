@@ -23,20 +23,17 @@ namespace FlowWheel
         {
             base.OnStartup(e);
             
-            // Show Splash Screen
             var splash = new SplashWindow();
             splash.Show();
 
-            // Allow Splash to render (Yield control to UI thread)
-            await Task.Delay(500);
+            await Task.Delay(100);
 
-            // Ensure app doesn't close when settings window is closed
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             try
             {
-                // Step 1: Config & Core Logic (Fast)
-                splash.SetStatus("Loading Configuration...");
+                splash.SetStatus("Loading...");
+                
                 await Task.Run(() => 
                 {
                     ConfigManager.Load();
@@ -44,8 +41,9 @@ namespace FlowWheel
                     _scrollEngine = new ScrollEngine();
                 });
 
-                // Apply Config
                 LanguageManager.SetLanguage(ConfigManager.Current.Language);
+                ThemeManager.ApplyTheme(ConfigManager.Current.IsDarkMode);
+
                 if (_scrollEngine != null)
                 {
                     _scrollEngine.Sensitivity = ConfigManager.Current.Sensitivity;
@@ -53,47 +51,34 @@ namespace FlowWheel
                     _scrollEngine.IsSyncEnabled = ConfigManager.Current.IsSyncScrollEnabled;
                 }
 
-                // Step 2: Initialize Hooks & Overlay (Heavy UI Thread work)
-                splash.SetStatus("Initializing Engine...");
-                await Task.Delay(100); // UI Refresh
-
                 _mouseHook = new MouseHook();
                 try 
                 {
                     _keyboardHook = new KeyboardHook();
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Failed to install keyboard hook: {ex.Message}");
-                }
+                catch { }
                 
-                // This creates the OverlayWindow (Heavy)
                 if (_mouseHook != null && _scrollEngine != null && _windowManager != null)
                 {
                     _autoScrollManager = new AutoScrollManager(_mouseHook, _keyboardHook!, _scrollEngine, _windowManager);
                     _autoScrollManager.IsEnabled = ConfigManager.Current.IsEnabled;
                 }
 
-                // Step 3: Tray Icon
-                splash.SetStatus("Starting Tray Service...");
-                await Task.Delay(200); // Visual pause
-
                 _notifyIcon = new NotifyIcon();
                 LoadTrayIcon();
                 _notifyIcon.Visible = true;
-                _notifyIcon.Text = "FlowWheel (Running)";
+                _notifyIcon.Text = "FlowWheel";
                 _notifyIcon.DoubleClick += (s, args) => ShowSettings();
 
                 UpdateTrayMenu();
                 LanguageManager.LanguageChanged += (s, args) => UpdateTrayMenu();
 
-                // Done
                 splash.Close();
             }
             catch (Exception ex)
             {
                 splash.Close();
-                System.Windows.MessageBox.Show($"Startup Error: {ex.Message}\nEnsure you have appropriate permissions.", "FlowWheel Error");
+                System.Windows.MessageBox.Show($"Startup Error: {ex.Message}", "FlowWheel Error");
                 Shutdown();
             }
         }

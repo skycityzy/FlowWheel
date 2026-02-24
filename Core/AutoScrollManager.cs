@@ -41,6 +41,7 @@ namespace FlowWheel.Core
             {
                 _keyboardHook.KeyboardEvent += OnKeyboardEvent;
             }
+            _engine.Stopped += OnEngineStopped;
             
             var dispatcher = Application.Current.Dispatcher;
             if (dispatcher.CheckAccess())
@@ -433,10 +434,24 @@ namespace FlowWheel.Core
             });
         }
 
+        private void OnEngineStopped(object? sender, EventArgs e)
+        {
+            if (_isActive)
+            {
+                _isActive = false;
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _overlay?.SetReadingMode(false);
+                    _overlay?.HideAnchor();
+                });
+            }
+        }
+
         public void Dispose()
         {
             _engine.Stop();
             _hook.MouseEvent -= OnMouseEvent;
+            _engine.Stopped -= OnEngineStopped;
             if (_keyboardHook != null)
             {
                 _keyboardHook.KeyboardEvent -= OnKeyboardEvent;

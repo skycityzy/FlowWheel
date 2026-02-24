@@ -9,34 +9,52 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>1.5.2</Version>
-    <AssemblyVersion>1.5.2.0</AssemblyVersion>
-    <FileVersion>1.5.2.0</FileVersion>
+    <Version>1.5.3</Version>
+    <AssemblyVersion>1.5.3.0</AssemblyVersion>
+    <FileVersion>1.5.3.0</FileVersion>
     
-    <!-- Size Optimization -->
+    <!-- Performance & Size Optimization -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <!-- Trimming (Conservative for WPF) -->
-    <PublishTrimmed>false</PublishTrimmed> 
-    <!-- Note: WPF doesn't support full trimming well yet. We rely on compression. -->
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    
+    <!-- Compiler Optimizations -->
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    
+    <!-- Startup Speed -->
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+    <QuickJit>true</QuickJit>
+    
+    <!-- Reduce Size -->
+    <TrimMode>partial</TrimMode>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    
+    <!-- Memory Optimization -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    
+    <!-- Reduce globalization overhead (smaller size) -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    
+    <!-- Disable unused features -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <AnalysisLevel>none</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="Assets\**">
+    <Resource Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Resource>
     <None Update="app.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Core\" />
-    <Folder Include="UI\" />
   </ItemGroup>
 
 </Project>

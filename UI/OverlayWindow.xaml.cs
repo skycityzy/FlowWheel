@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using FlowWheel.Core;
 
@@ -11,17 +13,24 @@ namespace FlowWheel.UI
 {
     public partial class OverlayWindow : Window
     {
+        private RotateTransform? _wheelRotate;
+        private double _currentRotation = 0;
+        private double _rotationSpeed = 0;
+        private bool _isSpinning = false;
+        private System.Diagnostics.Stopwatch? _spinTimer;
+
         public OverlayWindow()
         {
             InitializeComponent();
             LoadCustomIcon();
+            _spinTimer = System.Diagnostics.Stopwatch.StartNew();
+            CompositionTarget.Rendering += OnRendering;
         }
 
         private void LoadCustomIcon()
         {
             try
             {
-                // Look for Assets/anchor.png relative to executable
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "anchor.png");
                 if (File.Exists(path))
                 {
@@ -33,12 +42,11 @@ namespace FlowWheel.UI
 
                     CustomAnchorImage.Source = bitmap;
                     CustomAnchorImage.Visibility = Visibility.Visible;
-                    DefaultAnchor.Visibility = Visibility.Collapsed;
+                    WheelIndicator.Visibility = Visibility.Collapsed;
                 }
             }
             catch (Exception ex)
             {
-                // Fallback to default
                 System.Diagnostics.Debug.WriteLine($"Failed to load custom icon: {ex.Message}");
             }
         }
@@ -46,32 +54,50 @@ namespace FlowWheel.UI
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            
-            // Make the window "Transparent" to input (Click-through)
-            // We only want to show visuals, not intercept clicks (the Hook does that)
             var hwnd = new WindowInteropHelper(this).Handle;
             int exStyle = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
             NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE, exStyle | NativeMethods.WS_EX_TRANSPARENT | NativeMethods.WS_EX_TOOLWINDOW);
         }
 
+        private void OnRendering(object? sender, EventArgs e)
+        {
+            if (_isSpinning && SpinningWheel != null)
+            {
+                var dt = _spinTimer?.Elapsed.TotalSeconds ?? 0;
+                _spinTimer?.Restart();
+                
+                _currentRotation += _rotationSpeed * dt;
+                if (SpinningWheel.RenderTransform is RotateTransform rt)
+                {
+                    rt.Angle = _currentRotation;
+                }
+            }
+        }
+
         public void ShowAnchor(double x, double y)
         {
-            // Position the anchor center at x, y
             Canvas.SetLeft(Anchor, x - Anchor.Width / 2);
             Canvas.SetTop(Anchor, y - Anchor.Height / 2);
             Anchor.Visibility = Visibility.Visible;
             
-            // Reset visibility
-            CenterGraphic.Opacity = 1.0;
-            if (CustomAnchorImage.Visibility == Visibility.Visible) CustomAnchorImage.Opacity = 1.0;
+            // Reset
+            WheelIndicator.Opacity = 1.0;
+            if (CustomAnchorImage.Visibility == Visibility.Visible) 
+                CustomAnchorImage.Opacity = 1.0;
+            
             ReadingIcon.Visibility = Visibility.Collapsed;
-            CenterGraphic.Visibility = Visibility.Visible;
+            OuterRing.Visibility = Visibility.Visible;
+            SpinningWheel.Visibility = Visibility.Visible;
             
             // Reset arrows
-            if (ArrowUp != null) ArrowUp.Visibility = Visibility.Collapsed;
-            if (ArrowDown != null) ArrowDown.Visibility = Visibility.Collapsed;
-            if (ArrowLeft != null) ArrowLeft.Visibility = Visibility.Collapsed;
-            if (ArrowRight != null) ArrowRight.Visibility = Visibility.Collapsed;
+            ArrowUp.Visibility = Visibility.Collapsed;
+            ArrowDown.Visibility = Visibility.Collapsed;
+            ArrowLeft.Visibility = Visibility.Collapsed;
+            ArrowRight.Visibility = Visibility.Collapsed;
+
+            // Start subtle idle spin
+            _rotationSpeed = 30; // Slow idle rotation
+            _isSpinning = true;
 
             this.Show();
         }
@@ -80,59 +106,63 @@ namespace FlowWheel.UI
         {
             if (enabled)
             {
-                CenterGraphic.Visibility = Visibility.Collapsed;
+                OuterRing.Visibility = Visibility.Collapsed;
+                SpinningWheel.Visibility = Visibility.Collapsed;
                 ReadingIcon.Visibility = Visibility.Visible;
-                // Hide arrows in reading mode
+                _isSpinning = false;
                 UpdateDirection(false, false, false, false);
             }
             else
             {
                 ReadingIcon.Visibility = Visibility.Collapsed;
-                CenterGraphic.Visibility = Visibility.Visible;
+                OuterRing.Visibility = Visibility.Visible;
+                SpinningWheel.Visibility = Visibility.Visible;
+                _isSpinning = true;
             }
         }
 
         public void UpdateDirection(bool up, bool down, bool left, bool right)
         {
-            if (DefaultAnchor.Visibility == Visibility.Visible)
+            ArrowUp.Visibility = up ? Visibility.Visible : Visibility.Collapsed;
+            ArrowDown.Visibility = down ? Visibility.Visible : Visibility.Collapsed;
+            ArrowLeft.Visibility = left ? Visibility.Visible : Visibility.Collapsed;
+            ArrowRight.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Adjust spin speed based on direction
+            if (up || down)
             {
-                if (ArrowUp != null) ArrowUp.Visibility = up ? Visibility.Visible : Visibility.Collapsed;
-                if (ArrowDown != null) ArrowDown.Visibility = down ? Visibility.Visible : Visibility.Collapsed;
-                if (ArrowLeft != null) ArrowLeft.Visibility = left ? Visibility.Visible : Visibility.Collapsed;
-                if (ArrowRight != null) ArrowRight.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
+                _rotationSpeed = down ? 180 : -180; // Spin faster when scrolling
+            }
+            else
+            {
+                _rotationSpeed = 30; // Slow idle
             }
         }
 
         public void UpdateDistance(double distance)
         {
-            // Dynamic Opacity Logic
-            // 1. Fade out when dragging far away (existing logic)
-            // 2. Fade out when mouse is TOO CLOSE (new logic to prevent occlusion)
-            
             double opacity = 1.0;
 
-            if (distance < 100)
+            if (distance < 60)
             {
-                // Fade out when close to anchor (prevent occlusion)
-                // 0px -> 0.2 opacity
-                // 100px -> 1.0 opacity
-                opacity = 0.2 + (distance / 100.0) * 0.8;
+                // Fade out when close
+                opacity = 0.3 + (distance / 60.0) * 0.7;
             }
-            else if (distance > 200)
+            else if (distance > 150)
             {
-                // Fade out when far away (existing logic, adjusted range)
-                // 200px -> 1.0
-                // 500px -> 0.4
-                opacity = 1.0 - (distance - 200) / 600.0;
-                if (opacity < 0.4) opacity = 0.4;
+                // Fade out when far
+                opacity = 1.0 - (distance - 150) / 400.0;
+                if (opacity < 0.3) opacity = 0.3;
             }
             
-            CenterGraphic.Opacity = opacity;
-            if (CustomAnchorImage.Visibility == Visibility.Visible) CustomAnchorImage.Opacity = opacity;
+            WheelIndicator.Opacity = opacity;
+            if (CustomAnchorImage.Visibility == Visibility.Visible) 
+                CustomAnchorImage.Opacity = opacity;
         }
 
         public void HideAnchor()
         {
+            _isSpinning = false;
             Anchor.Visibility = Visibility.Collapsed;
             this.Hide();
         }

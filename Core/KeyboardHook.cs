@@ -15,11 +15,17 @@ namespace FlowWheel.Core
         {
             _proc = HookCallback;
             _hookId = SetHook(_proc);
+            if (_hookId == IntPtr.Zero)
+            {
+                // Fallback or just log
+                System.Diagnostics.Debug.WriteLine("Failed to install keyboard hook");
+            }
         }
 
         public void Dispose()
         {
-            UnhookWindowsHookEx(_hookId);
+            if (_hookId != IntPtr.Zero)
+                UnhookWindowsHookEx(_hookId);
         }
 
         private IntPtr SetHook(NativeMethods.LowLevelKeyboardProc proc)
@@ -27,9 +33,18 @@ namespace FlowWheel.Core
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule? curModule = curProcess.MainModule)
             {
-                if (curModule == null) return IntPtr.Zero;
-                return NativeMethods.SetWindowsHookEx(NativeMethods.WH_KEYBOARD_LL, proc,
-                    NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
+                IntPtr moduleHandle = IntPtr.Zero;
+                if (curModule != null)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(curModule.ModuleName);
+                }
+                
+                if (moduleHandle == IntPtr.Zero)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(null);
+                }
+                
+                return NativeMethods.SetWindowsHookEx(NativeMethods.WH_KEYBOARD_LL, proc, moduleHandle, 0);
             }
         }
 

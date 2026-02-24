@@ -27,6 +27,8 @@ namespace FlowWheel.Core
         public bool IsReadingModeEnabled { get; set; } = false;
         public bool IsWhitelistMode { get; set; } = false; // New: Whitelist Mode
         public string ToggleHotkey { get; set; } = "Ctrl+Alt+S"; // New: Custom Hotkey
+        public bool IsDarkMode { get; set; } = false; // Dark Mode
+        public bool StartupEnabled { get; set; } = false; // Auto-start on boot
         public List<AppProfile> AppProfiles { get; set; } = new List<AppProfile>
         {
             new AppProfile { ProcessName = "flowwheel" },

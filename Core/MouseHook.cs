@@ -15,11 +15,16 @@ namespace FlowWheel.Core
         {
             _proc = HookCallback;
             _hookId = SetHook(_proc);
+            if (_hookId == IntPtr.Zero)
+            {
+                System.Diagnostics.Debug.WriteLine("Failed to install mouse hook");
+            }
         }
 
         public void Dispose()
         {
-            UnhookWindowsHookEx(_hookId);
+            if (_hookId != IntPtr.Zero)
+                UnhookWindowsHookEx(_hookId);
         }
 
         private IntPtr SetHook(NativeMethods.LowLevelMouseProc proc)
@@ -27,9 +32,18 @@ namespace FlowWheel.Core
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule? curModule = curProcess.MainModule)
             {
-                if (curModule == null) return IntPtr.Zero; // Should not happen for main module
-                return NativeMethods.SetWindowsHookEx(NativeMethods.WH_MOUSE_LL, proc,
-                    NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
+                IntPtr moduleHandle = IntPtr.Zero;
+                if (curModule != null)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(curModule.ModuleName);
+                }
+                
+                if (moduleHandle == IntPtr.Zero)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(null);
+                }
+
+                return NativeMethods.SetWindowsHookEx(NativeMethods.WH_MOUSE_LL, proc, moduleHandle, 0);
             }
         }
 
