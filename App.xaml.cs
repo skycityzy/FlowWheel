@@ -26,7 +26,7 @@ namespace FlowWheel
             var splash = new SplashWindow();
             splash.Show();
 
-            await Task.Delay(100);
+            await Task.Delay(800);
 
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
