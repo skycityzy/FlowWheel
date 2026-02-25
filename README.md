@@ -25,7 +25,11 @@
 **FlowWheel** is a powerful Windows utility that brings smooth, browser-style "Middle-Click Auto-Scroll" to the entire operating system. It now features advanced productivity tools like **Inertia Scrolling**, **Multi-Screen Sync** and **Reading Mode**.
 
 ### New in v1.5.5
-- **Bug Fix**: Fixed a startup crash caused by incorrect type binding for `DropShadowEffect.Color` in theme resources. The application now launches without errors.
+- **Smooth Theme Switching**: Added smooth transition animations when switching between Light and Dark themes.
+- **Custom Hotkeys**: Now you can customize your own global hotkeys for toggling auto-scroll.
+- **Custom Icons**: New icon options with improved visual design for the overlay.
+- **UI Enhancements**: Refined settings interface with better visual feedback and modern styling.
+- **Bug Fix**: Fixed a startup crash caused by incorrect type binding for `DropShadowEffect.Color` in theme resources.
 
 ### Key Features
 
@@ -117,7 +121,11 @@ Manage all your preferences in the new Settings dashboard:
 **FlowWheel** 是一款强大的 Windows 全局自动滚动工具，它不仅将浏览器的"中键无极滚屏"体验带到了系统每个角落，还新增了**惯性滚动**、**多屏同步**和**阅读模式**等生产力功能。
 
 ###  v1.5.5 新功能
-- **问题修复**：修复了启动时主题资源中 `DropShadowEffect.Color` 类型绑定错误导致的崩溃问题，应用程序现在可以正常启动。
+- **流畅的主题切换**：新增昼夜主题切换过渡动画，切换更加丝滑自然。
+- **自定义快捷键**：支持自定义全局快捷键，一键切换自动滚动。
+- **自定义图标**：新增图标选项，视觉设计更加精美。
+- **界面美化**：优化设置界面，视觉反馈更佳，风格更加现代。
+- **问题修复**：修复了启动时主题资源中 `DropShadowEffect.Color` 类型绑定错误导致的崩溃问题。
 
 ### 核心功能
 
