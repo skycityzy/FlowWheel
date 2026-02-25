@@ -15,17 +15,76 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
-        <!-- Dark mode tide animation overlay -->
-        <Border x:Name="DarkModeOverlay" Grid.ColumnSpan="2" 
-                Background="{DynamicResource Brush.Background}" 
-                Opacity="0" IsHitTestVisible="False"
-                ClipToBounds="True">
-            <Border.RenderTransform>
-                <ScaleTransform x:Name="OverlayScale" ScaleX="0" ScaleY="0"/>
-            </Border.RenderTransform>
-            <Ellipse x:Name="OverlayCircle" Fill="{Binding Background, RelativeSource={RelativeSource AncestorType=Border}}"
-                     Stretch="UniformToFill"/>
-        </Border>
+        <!-- Background Decoration Layer -->
+        <Canvas x:Name="DecorationCanvas" Grid.ColumnSpan="2" IsHitTestVisible="False" ClipToBounds="True">
+            <!-- Stars for Dark Mode - More stars scattered across the background -->
+            <Canvas x:Name="StarsCanvas" Opacity="0">
+                <Canvas.Resources>
+                    <Style TargetType="Path">
+                        <Setter Property="Data" Value="M100,50 C72.38589,50 50,72.38589 50,100 C50,72.38589 27.61411,50 0,50 C27.61411,50 50,27.61411 50,0 C50,27.61411 72.38589,50 100,50 z"/>
+                        <Setter Property="Stretch" Value="UniformToFill"/>
+                        <Setter Property="Fill" Value="White"/>
+                    </Style>
+                </Canvas.Resources>
+                <!-- Row 1 - Top area -->
+                <Path x:Name="DecoStar1" Width="3" Height="3" Canvas.Left="80" Canvas.Top="25" Opacity="0.5"/>
+                <Path x:Name="DecoStar2" Width="4" Height="4" Canvas.Left="200" Canvas.Top="35" Opacity="0.7"/>
+                <Path x:Name="DecoStar3" Width="2" Height="2" Canvas.Left="350" Canvas.Top="20" Opacity="0.4"/>
+                <Path x:Name="DecoStar4" Width="3" Height="3" Canvas.Left="500" Canvas.Top="45" Opacity="0.6"/>
+                <Path x:Name="DecoStar5" Width="4" Height="4" Canvas.Left="650" Canvas.Top="30" Opacity="0.5"/>
+                <!-- Row 2 - Middle area -->
+                <Path x:Name="DecoStar6" Width="3" Height="3" Canvas.Left="120" Canvas.Top="100" Opacity="0.5"/>
+                <Path x:Name="DecoStar7" Width="5" Height="5" Canvas.Left="280" Canvas.Top="120" Opacity="0.8"/>
+                <Path x:Name="DecoStar8" Width="2" Height="2" Canvas.Left="420" Canvas.Top="95" Opacity="0.4"/>
+                <Path x:Name="DecoStar9" Width="4" Height="4" Canvas.Left="550" Canvas.Top="130" Opacity="0.6"/>
+                <Path x:Name="DecoStar10" Width="3" Height="3" Canvas.Left="700" Canvas.Top="110" Opacity="0.5"/>
+                <!-- Row 3 - Lower middle -->
+                <Path x:Name="DecoStar11" Width="3" Height="3" Canvas.Left="50" Canvas.Top="200" Opacity="0.6"/>
+                <Path x:Name="DecoStar12" Width="4" Height="4" Canvas.Left="180" Canvas.Top="220" Opacity="0.7"/>
+                <Path x:Name="DecoStar13" Width="2" Height="2" Canvas.Left="320" Canvas.Top="190" Opacity="0.4"/>
+                <Path x:Name="DecoStar14" Width="3" Height="3" Canvas.Left="480" Canvas.Top="210" Opacity="0.5"/>
+                <Path x:Name="DecoStar15" Width="4" Height="4" Canvas.Left="620" Canvas.Top="195" Opacity="0.6"/>
+                <!-- Row 4 - Bottom area -->
+                <Path x:Name="DecoStar16" Width="2" Height="2" Canvas.Left="100" Canvas.Top="300" Opacity="0.4"/>
+                <Path x:Name="DecoStar17" Width="3" Height="3" Canvas.Left="250" Canvas.Top="320" Opacity="0.5"/>
+                <Path x:Name="DecoStar18" Width="4" Height="4" Canvas.Left="400" Canvas.Top="290" Opacity="0.6"/>
+                <Path x:Name="DecoStar19" Width="3" Height="3" Canvas.Left="580" Canvas.Top="310" Opacity="0.5"/>
+                <Path x:Name="DecoStar20" Width="2" Height="2" Canvas.Left="720" Canvas.Top="285" Opacity="0.4"/>
+                <!-- Extra twinkling stars -->
+                <Path x:Name="DecoStar21" Width="5" Height="5" Canvas.Left="150" Canvas.Top="60" Opacity="0.9"/>
+                <Path x:Name="DecoStar22" Width="5" Height="5" Canvas.Left="450" Canvas.Top="160" Opacity="0.85"/>
+                <Path x:Name="DecoStar23" Width="5" Height="5" Canvas.Left="600" Canvas.Top="250" Opacity="0.9"/>
+            </Canvas>
+            
+            <!-- Clouds for Light Mode - More clouds at different positions -->
+            <Canvas x:Name="CloudsCanvas" Opacity="0">
+                <!-- Bottom clouds -->
+                <Path x:Name="Cloud1" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 330.15525,362.39707 353.16314,370.00505 368.58869,378.91567 370.80287,377.8725 376.53823,377.01298 381.06677,376.82559 387.43795,354.90123 410.63981,354.27147 420.4351,355.75324 432.85079,341.48144 440.27525,342.83843 451.87985,342.32945 457.75133,307.27233 472.82215,288.94564 509.06064,292.16184 512.31051,292.45027 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#77FFFFFF" Stretch="UniformToFill" Width="180" Height="50" Canvas.Left="-30" Canvas.Bottom="-10" Opacity="0.95"/>
+                <Path x:Name="Cloud2" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 337.22357,353.75764 390.50003,373.43798 398.90003,384.97667 412.50003,378.21261 430.04088,381.41688 430.04088,381.41688 436.82018,362.13027 456.18064,352.96024 465.00342,351.59457 460.57167,304.02021 510.55723,292.35177 521.33687,292.25901 530.92623,292.1765 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#88FFFFFF" Stretch="UniformToFill" Width="200" Height="55" Canvas.Left="480" Canvas.Bottom="-5" Opacity="0.9"/>
+                <Path x:Name="Cloud3" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 330.15525,362.39707 353.16314,370.00505 368.58869,378.91567 370.80287,377.8725 376.53823,377.01298 381.06677,376.82559 387.43795,354.90123 410.63981,354.27147 420.4351,355.75324 432.85079,341.48144 440.27525,342.83843 451.87985,342.32945 457.75133,307.27233 472.82215,288.94564 509.06064,292.16184 512.31051,292.45027 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#66FFFFFF" Stretch="UniformToFill" Width="150" Height="40" Canvas.Left="220" Canvas.Bottom="-8" Opacity="0.85"/>
+                <!-- Middle clouds -->
+                <Path x:Name="Cloud4" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 330.15525,362.39707 353.16314,370.00505 368.58869,378.91567 370.80287,377.8725 376.53823,377.01298 381.06677,376.82559 387.43795,354.90123 410.63981,354.27147 420.4351,355.75324 432.85079,341.48144 440.27525,342.83843 451.87985,342.32945 457.75133,307.27233 472.82215,288.94564 509.06064,292.16184 512.31051,292.45027 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#55FFFFFF" Stretch="UniformToFill" Width="120" Height="35" Canvas.Left="600" Canvas.Top="80" Opacity="0.7"/>
+                <Path x:Name="Cloud5" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 330.15525,362.39707 353.16314,370.00505 368.58869,378.91567 370.80287,377.8725 376.53823,377.01298 381.06677,376.82559 387.43795,354.90123 410.63981,354.27147 420.4351,355.75324 432.85079,341.48144 440.27525,342.83843 451.87985,342.32945 457.75133,307.27233 472.82215,288.94564 509.06064,292.16184 512.31051,292.45027 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#44FFFFFF" Stretch="UniformToFill" Width="100" Height="30" Canvas.Left="350" Canvas.Top="50" Opacity="0.6"/>
+                <Path x:Name="Cloud6" Data="M158.99223,453.55724 C169.78284,423.31232 203.15378,392.41965 241.59875,404.12313 261.99875,383.72313 299.3,391.57463 305.3,392.77701 330.15525,362.39707 353.16314,370.00505 368.58869,378.91567 370.80287,377.8725 376.53823,377.01298 381.06677,376.82559 387.43795,354.90123 410.63981,354.27147 420.4351,355.75324 432.85079,341.48144 440.27525,342.83843 451.87985,342.32945 457.75133,307.27233 472.82215,288.94564 509.06064,292.16184 512.31051,292.45027 525.93938,292.61638 525.93938,292.61638 525.90428,295.34879 526.73875,460.86787 526.8053,465.68179 L154.99571,465.6552 z"
+                      Fill="#33FFFFFF" Stretch="UniformToFill" Width="80" Height="25" Canvas.Left="500" Canvas.Top="150" Opacity="0.5"/>
+            </Canvas>
+        </Canvas>
+        
+        <!-- Dark mode water drop animation overlay -->
+        <Canvas x:Name="OverlayCanvas" Grid.ColumnSpan="2" IsHitTestVisible="False" ClipToBounds="True">
+            <Ellipse x:Name="WaterDrop" 
+                     Width="0" Height="0"
+                     RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <TranslateTransform x:Name="WaterDropTranslate" X="0" Y="0"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Canvas>
         
         <Border x:Name="SidebarBorder" Grid.Column="0" Background="{DynamicResource Brush.Sidebar.Background}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
             <Grid>
@@ -38,7 +97,11 @@
                 <StackPanel Grid.Row="0" Margin="16,16,16,8">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Path Data="M12,2 L12,22 M2,12 L22,12" Stroke="{DynamicResource Brush.Accent}" StrokeThickness="2.5" 
-                              Width="22" Height="22" Stretch="Uniform" Margin="0,0,8,0"/>
+                              Width="22" Height="22" Stretch="Uniform" Margin="0,0,8,0">
+                            <Path.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.5" Color="#4DA6FF"/>
+                            </Path.Effect>
+                        </Path>
                         <TextBlock Text="FlowWheel" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource Brush.Text.Primary}"/>
                     </StackPanel>
                     <TextBlock x:Name="VersionLabel" Text="v1.5.4" FontSize="11" 
@@ -67,7 +130,7 @@
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{DynamicResource LabelDarkMode}" FontSize="12" Foreground="{DynamicResource Brush.Text.Primary}"/>
                         </StackPanel>
-                        <controls:ToggleSwitch x:Name="DarkModeToggle" Grid.Column="1" Width="44" Height="24"/>
+                        <controls:ToggleSwitch x:Name="DarkModeToggle" Grid.Column="1" Style="{StaticResource GorgeousThemeToggleStyle}"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -96,13 +159,35 @@
                                 <Grid Style="{StaticResource SettingRow}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition Width="200"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="{DynamicResource LabelLanguage}" Style="{StaticResource SettingLabel}"/>
                                     <ComboBox x:Name="LanguageCombo" Grid.Column="1" Style="{StaticResource ModernComboBox}"
-                                              SelectionChanged="LanguageCombo_SelectionChanged">
+                                              Width="200" SelectionChanged="LanguageCombo_SelectionChanged">
                                         <ComboBoxItem Content="English" Tag="en-US"/>
                                         <ComboBoxItem Content="简体中文" Tag="zh-CN"/>
+                                    </ComboBox>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource SectionPerformance}" Style="{StaticResource SectionTitle}"/>
+                                <Grid Style="{StaticResource SettingRow}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource LabelPerformanceMode}" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock Text="{DynamicResource DescPerformanceMode}" Style="{StaticResource SettingDescription}"/>
+                                    </StackPanel>
+                                    <ComboBox x:Name="PerformanceModeCombo" Grid.Column="1" Style="{StaticResource ModernComboBox}"
+                                              Width="200" SelectionChanged="PerformanceModeCombo_SelectionChanged">
+                                        <ComboBoxItem Content="{DynamicResource PerfPowerSaver}" Tag="PowerSaver"/>
+                                        <ComboBoxItem Content="{DynamicResource PerfBalanced}" Tag="Balanced"/>
+                                        <ComboBoxItem Content="{DynamicResource PerfHighPerf}" Tag="HighPerformance"/>
                                     </ComboBox>
                                 </Grid>
                             </StackPanel>
@@ -188,25 +273,6 @@
                         
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel>
-                                <TextBlock Text="{DynamicResource SectionTriggerKey}" Style="{StaticResource SectionTitle}"/>
-                                <Grid Style="{StaticResource SettingRow}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="160"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{DynamicResource LabelTriggerKey}" Style="{StaticResource SettingLabel}"/>
-                                    <ComboBox x:Name="TriggerKeyCombo" Grid.Column="1" Style="{StaticResource ModernComboBox}"
-                                              SelectionChanged="TriggerKeyCombo_SelectionChanged">
-                                        <ComboBoxItem Content="{DynamicResource KeyMiddleMouse}" Tag="MiddleMouse"/>
-                                        <ComboBoxItem Content="{DynamicResource KeyXButton1}" Tag="XButton1"/>
-                                        <ComboBoxItem Content="{DynamicResource KeyXButton2}" Tag="XButton2"/>
-                                    </ComboBox>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-                        
-                        <Border Style="{StaticResource CardStyle}">
-                            <StackPanel>
                                 <TextBlock Text="{DynamicResource SectionSensitivity}" Style="{StaticResource SectionTitle}"/>
                                 
                                 <Grid Style="{StaticResource SettingRow}">
@@ -234,6 +300,53 @@
                                 <Slider x:Name="DeadzoneSlider" Minimum="5" Maximum="50" Value="20" 
                                         ValueChanged="DeadzoneSlider_ValueChanged"/>
                                 <TextBlock Text="{DynamicResource DescDeadzone}" Style="{StaticResource SettingDescription}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource SectionCustomIcon}" Style="{StaticResource SectionTitle}"/>
+                                
+                                <Grid Style="{StaticResource SettingRow}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource LabelCustomIcon}" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock Text="{DynamicResource DescCustomIcon}" Style="{StaticResource SettingDescription}"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="CustomIconPathInput" Style="{StaticResource ModernTextBox}" 
+                                             IsReadOnly="True" ToolTip="{DynamicResource DescCustomIcon}"/>
+                                    <Button Grid.Column="1" Content="..." 
+                                            Style="{StaticResource ModernButton}" Padding="10,6" Margin="6,0,6,0"
+                                            Click="BrowseIcon_Click" ToolTip="{DynamicResource BtnBrowse}"/>
+                                    <Button Grid.Column="2" Content="×" 
+                                            Style="{StaticResource ModernButton}" Padding="10,6"
+                                            Click="ClearIcon_Click" ToolTip="{DynamicResource BtnClear}"/>
+                                </Grid>
+                                
+                                <Grid Style="{StaticResource SettingRow}" Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{DynamicResource LabelIconSize}" Style="{StaticResource SettingLabel}"/>
+                                    <TextBlock x:Name="IconSizeValueText" Text="48px" Grid.Column="1" 
+                                               Style="{StaticResource SettingLabel}" Foreground="{DynamicResource Brush.Accent}"/>
+                                </Grid>
+                                <Slider x:Name="IconSizeSlider" Minimum="24" Maximum="96" Value="48" 
+                                        TickFrequency="1" IsSnapToTickEnabled="True" 
+                                        ValueChanged="IconSizeSlider_ValueChanged"/>
+                                <TextBlock Text="{DynamicResource DescIconSize}" Style="{StaticResource SettingDescription}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -311,25 +424,56 @@
                                 <TextBlock Text="{DynamicResource SectionHotkey}" Style="{StaticResource SectionTitle}"/>
                                 
                                 <Grid Style="{StaticResource SettingRow}">
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{DynamicResource LabelToggleShortcut}" Style="{StaticResource SettingLabel}"/>
-                                        <TextBlock Text="{DynamicResource DescToggleShortcut}" Style="{StaticResource SettingDescription}"/>
-                                    </StackPanel>
-                                </Grid>
-                                
-                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="HotkeyInput" Style="{StaticResource ModernTextBox}" 
-                                             IsReadOnly="True" PreviewKeyDown="HotkeyInput_PreviewKeyDown"
-                                             GotFocus="HotkeyInput_GotFocus" LostFocus="HotkeyInput_LostFocus"
-                                             Text="Click to set hotkey..."/>
-                                    <Button Grid.Column="1" Content="×" 
-                                            Style="{StaticResource ModernButton}" Padding="10,6" Margin="6,0,0,0"
-                                            Click="ClearHotkey_Click" ToolTip="Clear"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource LabelAppStatus}" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock Text="{DynamicResource DescAppStatus}" Style="{StaticResource SettingDescription}"/>
+                                    </StackPanel>
+                                    <controls:ToggleSwitch x:Name="AppStatusToggle" Grid.Column="1" Width="44" Height="24"/>
                                 </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource SectionTriggerKey}" Style="{StaticResource SectionTitle}"/>
+                                <Grid Style="{StaticResource SettingRow}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource LabelTriggerKey}" Style="{StaticResource SettingLabel}"/>
+                                        <TextBlock Text="{DynamicResource DescTriggerKey}" Style="{StaticResource SettingDescription}"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TriggerKeyInput" Style="{StaticResource ModernTextBox}"
+                                             TextChanged="TriggerKeyInput_TextChanged"
+                                             ToolTip="{DynamicResource DescTriggerKey}"/>
+                                    <Button x:Name="BtnListen" Grid.Column="1" Content="{DynamicResource BtnListen}" 
+                                            Style="{StaticResource ModernButton}" Padding="10,6" Margin="6,0,0,0"
+                                            Click="BtnListen_Click" ToolTip="{DynamicResource BtnListenTip}"/>
+                                    <Button Grid.Column="2" Content="{DynamicResource BtnPreset}" 
+                                            Style="{StaticResource ModernButton}" Padding="10,6" Margin="6,0,0,0"
+                                            Click="TriggerKeyPreset_Click" ToolTip="{DynamicResource BtnPresetTip}"/>
+                                </Grid>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <Button Content="{DynamicResource KeyMiddleMouse}" Style="{StaticResource ModernButton}" Padding="8,4" Margin="0,0,4,0"
+                                            FontSize="11" Click="TriggerKeyPreset_Select" Tag="MiddleMouse"/>
+                                    <Button Content="Alt+Middle" Style="{StaticResource ModernButton}" Padding="8,4" Margin="0,0,4,0"
+                                            FontSize="11" Click="TriggerKeyPreset_Select" Tag="Alt+MiddleMouse"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

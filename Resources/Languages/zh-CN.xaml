@@ -14,19 +14,34 @@
     <!-- Sections -->
     <s:String x:Key="SectionLanguage">语言</s:String>
     <s:String x:Key="SectionStatus">状态</s:String>
+    <s:String x:Key="SectionPerformance">性能</s:String>
     <s:String x:Key="SectionTrigger">触发选项</s:String>
     <s:String x:Key="SectionTriggerMode">触发模式</s:String>
     <s:String x:Key="SectionTriggerKey">触发按键</s:String>
     <s:String x:Key="SectionSensitivity">灵敏度</s:String>
+    <s:String x:Key="SectionCustomIcon">自定义图标</s:String>
+    <s:String x:Key="LabelCustomIcon">自定义图标路径</s:String>
+    <s:String x:Key="DescCustomIcon">选择 PNG/JPG 图片作为滚动图标</s:String>
+    <s:String x:Key="LabelIconSize">图标大小</s:String>
+    <s:String x:Key="DescIconSize">调整滚动图标的大小 (24-96 像素)</s:String>
+    <s:String x:Key="BtnBrowse">浏览</s:String>
+    <s:String x:Key="BtnClear">清除</s:String>
     <s:String x:Key="SectionFilterMode">过滤模式</s:String>
     <s:String x:Key="SectionAppList">应用列表</s:String>
-    <s:String x:Key="SectionHotkey">全局快捷键</s:String>
+    <s:String x:Key="SectionHotkey">应用控制</s:String>
+    <s:String x:Key="LabelAppStatus">应用状态</s:String>
+    <s:String x:Key="DescAppStatus">开启或关闭自动滚屏功能</s:String>
     <s:String x:Key="SectionLinks">链接</s:String>
     <s:String x:Key="SectionSupport">支持开发者</s:String>
     <s:String x:Key="DescSupport">请我喝杯咖啡 ☕</s:String>
     
     <!-- Settings -->
     <s:String x:Key="LabelLanguage">语言</s:String>
+    <s:String x:Key="LabelPerformanceMode">性能模式</s:String>
+    <s:String x:Key="DescPerformanceMode">省电模式后台占用最低，高性能模式最流畅</s:String>
+    <s:String x:Key="PerfPowerSaver">省电模式 (30Hz)</s:String>
+    <s:String x:Key="PerfBalanced">平衡模式 (60Hz)</s:String>
+    <s:String x:Key="PerfHighPerf">高性能模式 (120Hz)</s:String>
     <s:String x:Key="CheckEnable">启用自动滚屏</s:String>
     <s:String x:Key="DescEnable">开启或关闭自动滚屏功能</s:String>
     <s:String x:Key="CheckStartup">开机自启动</s:String>
@@ -36,6 +51,13 @@
     <s:String x:Key="CheckReadingMode">启用阅读模式 (双击中键)</s:String>
     <s:String x:Key="DescReadingMode">双击鼠标中键激活持续滚动</s:String>
     <s:String x:Key="LabelTriggerKey">触发按键</s:String>
+    <s:String x:Key="DescTriggerKey">输入自定义按键名称 (如: MiddleMouse, XButton1, F1, F2 等)，或点击"监听"按钮按下任意键</s:String>
+    <s:String x:Key="BtnListen">监听</s:String>
+    <s:String x:Key="BtnListenTip">点击后按下任意键将其设为触发键</s:String>
+    <s:String x:Key="BtnPreset">预设</s:String>
+    <s:String x:Key="BtnPresetTip">选择预设按键</s:String>
+    <s:String x:Key="ListeningPrompt">请按下要设置的按键...</s:String>
+    <s:String x:Key="ListenSuccess">已设置触发键为: </s:String>
     <s:String x:Key="KeyMiddleMouse">鼠标中键</s:String>
     <s:String x:Key="KeyXButton1">鼠标侧键 1 (后退)</s:String>
     <s:String x:Key="KeyXButton2">鼠标侧键 2 (前进)</s:String>
@@ -45,9 +67,6 @@
     <s:String x:Key="LabelScrollSpeed">滚动速度</s:String>
     <s:String x:Key="LabelDeadzone">死区半径 (防误触)</s:String>
     <s:String x:Key="DescDeadzone">在此范围内移动鼠标不会触发滚动</s:String>
-    
-    <s:String x:Key="LabelToggleShortcut">全局快捷键 (开启/暂停)</s:String>
-    <s:String x:Key="DescToggleShortcut">点击输入框并按下按键组合来录制快捷键</s:String>
 
     <!-- Filtering -->
     <s:String x:Key="RadioBlacklist">黑名单 (屏蔽以下)</s:String>

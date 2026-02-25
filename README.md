@@ -10,7 +10,7 @@
  
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.5.4-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.5.5-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
  [English](#english) | [中文](#中文)
 
@@ -24,10 +24,8 @@
 
 **FlowWheel** is a powerful Windows utility that brings smooth, browser-style "Middle-Click Auto-Scroll" to the entire operating system. It now features advanced productivity tools like **Inertia Scrolling**, **Multi-Screen Sync** and **Reading Mode**.
 
-### New in v1.5.4
-- **Smoother Scrolling Feel**: Reduced jitter and improved responsiveness with a more stable scroll loop and smoother speed ramping.
-- **Better Update Experience**: More robust GitHub release checking with clearer error handling and improved download behavior.
-- **Higher Default Speed**: Default sensitivity is slightly increased for a faster out-of-box experience.
+### New in v1.5.5
+- **Bug Fix**: Fixed a startup crash caused by incorrect type binding for `DropShadowEffect.Color` in theme resources. The application now launches without errors.
 
 ### Key Features
 
@@ -118,10 +116,8 @@ Manage all your preferences in the new Settings dashboard:
 
 **FlowWheel** 是一款强大的 Windows 全局自动滚动工具，它不仅将浏览器的"中键无极滚屏"体验带到了系统每个角落，还新增了**惯性滚动**、**多屏同步**和**阅读模式**等生产力功能。
 
-###  v1.5.4 新功能
-- **更丝滑的滚动手感**：滚动节拍更稳定、响应更及时，并改善了速度的平滑过渡。
-- **更好的更新体验**：GitHub Release 检查更健壮，错误提示更清晰，下载行为更符合预期。
-- **更高的默认速度**：默认灵敏度略微上调。
+###  v1.5.5 新功能
+- **问题修复**：修复了启动时主题资源中 `DropShadowEffect.Color` 类型绑定错误导致的崩溃问题，应用程序现在可以正常启动。
 
 ### 核心功能
 

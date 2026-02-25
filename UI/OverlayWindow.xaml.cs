@@ -9,29 +9,51 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using FlowWheel.Core;
 
+// Alias to resolve naming conflicts
+using IOPath = System.IO.Path;
+using WpfPoint = System.Windows.Point;
+
 namespace FlowWheel.UI
 {
     public partial class OverlayWindow : Window
     {
-        private RotateTransform? _wheelRotate;
         private double _currentRotation = 0;
         private double _rotationSpeed = 0;
         private bool _isSpinning = false;
         private System.Diagnostics.Stopwatch? _spinTimer;
+        private bool _isRenderingSubscribed = false;
+        private int _currentIconSize = 48;
 
         public OverlayWindow()
         {
             InitializeComponent();
-            LoadCustomIcon();
-            _spinTimer = System.Diagnostics.Stopwatch.StartNew();
-            CompositionTarget.Rendering += OnRendering;
+            _spinTimer = new System.Diagnostics.Stopwatch();
+            // Apply initial size
+            ApplyIconSize(ConfigManager.Current.IconSize);
+            // Don't subscribe to Rendering event here - only subscribe when needed
         }
 
-        private void LoadCustomIcon()
+        /// <summary>
+        /// Load custom icon from path, or use default if path is empty
+        /// </summary>
+        public void LoadCustomIcon(string? customPath = null)
         {
             try
             {
-                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "anchor.png");
+                string? path = customPath;
+                
+                // If no custom path provided, check config
+                if (string.IsNullOrEmpty(path))
+                {
+                    path = ConfigManager.Current.CustomIconPath;
+                }
+                
+                // If still empty, check default Assets/anchor.png
+                if (string.IsNullOrEmpty(path))
+                {
+                    path = IOPath.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "anchor.png");
+                }
+                
                 if (File.Exists(path))
                 {
                     BitmapImage bitmap = new BitmapImage();
@@ -42,12 +64,121 @@ namespace FlowWheel.UI
 
                     CustomAnchorImage.Source = bitmap;
                     CustomAnchorImage.Visibility = Visibility.Visible;
-                    WheelIndicator.Visibility = Visibility.Collapsed;
+                    WheelIndicatorCanvas.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    // Use default wheel icon
+                    CustomAnchorImage.Visibility = Visibility.Collapsed;
+                    WheelIndicatorCanvas.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load custom icon: {ex.Message}");
+                // Fallback to default
+                CustomAnchorImage.Visibility = Visibility.Collapsed;
+                WheelIndicatorCanvas.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Apply icon size (limited to 24-96 pixels)
+        /// </summary>
+        public void ApplyIconSize(int size)
+        {
+            _currentIconSize = Math.Clamp(size, 24, 96);
+            
+            // Update Anchor size
+            Anchor.Width = _currentIconSize;
+            Anchor.Height = _currentIconSize;
+            
+            // Update WheelIndicatorCanvas size
+            WheelIndicatorCanvas.Width = _currentIconSize;
+            WheelIndicatorCanvas.Height = _currentIconSize;
+            
+            // Update WheelIndicator size
+            WheelIndicator.Width = _currentIconSize;
+            WheelIndicator.Height = _currentIconSize;
+            
+            // Calculate proportional sizes
+            double scale = _currentIconSize / 48.0;
+            
+            // Outer ring (was 40x40 on 48x48 grid)
+            OuterRing.Width = _currentIconSize * 0.833;
+            OuterRing.Height = _currentIconSize * 0.833;
+            
+            // Inner ring (was 16x16 on 48x48 grid)
+            InnerRing.Width = _currentIconSize * 0.333;
+            InnerRing.Height = _currentIconSize * 0.333;
+            
+            // Center dot (was 5x5 on 48x48 grid)
+            CenterDot.Width = _currentIconSize * 0.104;
+            CenterDot.Height = _currentIconSize * 0.104;
+            
+            // Update spinning wheel lines
+            UpdateSpinningWheelPaths();
+            
+            // Reading icon size (was 14x14 on 48x48 grid)
+            ReadingIcon.Width = _currentIconSize * 0.292;
+            ReadingIcon.Height = _currentIconSize * 0.292;
+            
+            // Arrow positions using Canvas coordinates
+            double centerX = _currentIconSize / 2.0;
+            double arrowOffset = _currentIconSize * 0.2; // Offset outside the icon
+            
+            // ArrowUp: center horizontally, above the icon
+            Canvas.SetLeft(ArrowUp, centerX - 6); // 6 = half of arrow width (12)
+            Canvas.SetTop(ArrowUp, -10 - arrowOffset + _currentIconSize * 0.1); // Position above
+            
+            // ArrowDown: center horizontally, below the icon
+            Canvas.SetLeft(ArrowDown, centerX - 6);
+            Canvas.SetTop(ArrowDown, _currentIconSize + arrowOffset - _currentIconSize * 0.1);
+            
+            // ArrowLeft: center vertically, left of the icon
+            Canvas.SetLeft(ArrowLeft, -10 - arrowOffset + _currentIconSize * 0.1);
+            Canvas.SetTop(ArrowLeft, centerX - 6); // 6 = half of arrow height (12)
+            
+            // ArrowRight: center vertically, right of the icon
+            Canvas.SetLeft(ArrowRight, _currentIconSize + arrowOffset - _currentIconSize * 0.1);
+            Canvas.SetTop(ArrowRight, centerX - 6);
+        }
+
+        private void UpdateSpinningWheelPaths()
+        {
+            // Set SpinningWheel size to match WheelIndicator, so center is at _currentIconSize / 2
+            SpinningWheel.Width = _currentIconSize;
+            SpinningWheel.Height = _currentIconSize;
+            
+            double center = _currentIconSize / 2.0;
+            double innerRadius = _currentIconSize * 0.125; // 6/48
+            double outerRadius = _currentIconSize * 0.292; // 14/48
+            
+            // Up
+            LineUp.Data = new LineGeometry(
+                new WpfPoint(center, center - outerRadius),
+                new WpfPoint(center, center - innerRadius));
+            
+            // Down
+            LineDown.Data = new LineGeometry(
+                new WpfPoint(center, center + innerRadius),
+                new WpfPoint(center, center + outerRadius));
+            
+            // Left
+            LineLeft.Data = new LineGeometry(
+                new WpfPoint(center - outerRadius, center),
+                new WpfPoint(center - innerRadius, center));
+            
+            // Right
+            LineRight.Data = new LineGeometry(
+                new WpfPoint(center + innerRadius, center),
+                new WpfPoint(center + outerRadius, center));
+            
+            // Update rotation center
+            if (WheelRotate != null)
+            {
+                WheelRotate.CenterX = center;
+                WheelRotate.CenterY = center;
             }
         }
 
@@ -61,27 +192,32 @@ namespace FlowWheel.UI
 
         private void OnRendering(object? sender, EventArgs e)
         {
-            if (_isSpinning && SpinningWheel != null)
+            if (!_isSpinning || SpinningWheel == null || _spinTimer == null) return;
+            
+            var dt = _spinTimer.Elapsed.TotalSeconds;
+            if (dt <= 0) return;
+            
+            _spinTimer.Restart();
+            
+            _currentRotation += _rotationSpeed * dt;
+            if (SpinningWheel.RenderTransform is RotateTransform rt)
             {
-                var dt = _spinTimer?.Elapsed.TotalSeconds ?? 0;
-                _spinTimer?.Restart();
-                
-                _currentRotation += _rotationSpeed * dt;
-                if (SpinningWheel.RenderTransform is RotateTransform rt)
-                {
-                    rt.Angle = _currentRotation;
-                }
+                rt.Angle = _currentRotation;
             }
         }
 
         public void ShowAnchor(double x, double y)
         {
+            // Apply current config size and custom icon
+            ApplyIconSize(ConfigManager.Current.IconSize);
+            LoadCustomIcon();
+            
             Canvas.SetLeft(Anchor, x - Anchor.Width / 2);
             Canvas.SetTop(Anchor, y - Anchor.Height / 2);
             Anchor.Visibility = Visibility.Visible;
             
             // Reset
-            WheelIndicator.Opacity = 1.0;
+            WheelIndicatorCanvas.Opacity = 1.0;
             if (CustomAnchorImage.Visibility == Visibility.Visible) 
                 CustomAnchorImage.Opacity = 1.0;
             
@@ -95,9 +231,20 @@ namespace FlowWheel.UI
             ArrowLeft.Visibility = Visibility.Collapsed;
             ArrowRight.Visibility = Visibility.Collapsed;
 
-            // Start subtle idle spin
-            _rotationSpeed = 30; // Slow idle rotation
-            _isSpinning = true;
+            // Start subtle idle spin (only if using default wheel, not custom image)
+            if (WheelIndicatorCanvas.Visibility == Visibility.Visible)
+            {
+                _rotationSpeed = 30; // Slow idle rotation
+                _isSpinning = true;
+            }
+            
+            // Subscribe to rendering only when visible
+            if (!_isRenderingSubscribed)
+            {
+                CompositionTarget.Rendering += OnRendering;
+                _isRenderingSubscribed = true;
+            }
+            _spinTimer?.Restart();
 
             this.Show();
         }
@@ -128,14 +275,17 @@ namespace FlowWheel.UI
             ArrowLeft.Visibility = left ? Visibility.Visible : Visibility.Collapsed;
             ArrowRight.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
             
-            // Adjust spin speed based on direction
-            if (up || down)
+            // Adjust spin speed based on direction (only for default wheel)
+            if (WheelIndicatorCanvas.Visibility == Visibility.Visible)
             {
-                _rotationSpeed = down ? 180 : -180; // Spin faster when scrolling
-            }
-            else
-            {
-                _rotationSpeed = 30; // Slow idle
+                if (up || down)
+                {
+                    _rotationSpeed = down ? 180 : -180; // Spin faster when scrolling
+                }
+                else
+                {
+                    _rotationSpeed = 30; // Slow idle
+                }
             }
         }
 
@@ -155,7 +305,7 @@ namespace FlowWheel.UI
                 if (opacity < 0.3) opacity = 0.3;
             }
             
-            WheelIndicator.Opacity = opacity;
+            WheelIndicatorCanvas.Opacity = opacity;
             if (CustomAnchorImage.Visibility == Visibility.Visible) 
                 CustomAnchorImage.Opacity = opacity;
         }
@@ -165,6 +315,14 @@ namespace FlowWheel.UI
             _isSpinning = false;
             Anchor.Visibility = Visibility.Collapsed;
             this.Hide();
+            
+            // Unsubscribe from rendering when hidden to save CPU
+            if (_isRenderingSubscribed)
+            {
+                CompositionTarget.Rendering -= OnRendering;
+                _isRenderingSubscribed = false;
+            }
+            _spinTimer?.Stop();
         }
     }
 }

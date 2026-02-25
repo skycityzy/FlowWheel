@@ -14,19 +14,34 @@
     <!-- Sections -->
     <s:String x:Key="SectionLanguage">Language</s:String>
     <s:String x:Key="SectionStatus">Status</s:String>
+    <s:String x:Key="SectionPerformance">Performance</s:String>
     <s:String x:Key="SectionTrigger">Trigger Options</s:String>
     <s:String x:Key="SectionTriggerMode">Trigger Mode</s:String>
     <s:String x:Key="SectionTriggerKey">Trigger Key</s:String>
     <s:String x:Key="SectionSensitivity">Sensitivity</s:String>
+    <s:String x:Key="SectionCustomIcon">Custom Icon</s:String>
+    <s:String x:Key="LabelCustomIcon">Custom Icon Path</s:String>
+    <s:String x:Key="DescCustomIcon">Select a PNG/JPG image as the scroll indicator</s:String>
+    <s:String x:Key="LabelIconSize">Icon Size</s:String>
+    <s:String x:Key="DescIconSize">Adjust the size of the scroll indicator (24-96 pixels)</s:String>
+    <s:String x:Key="BtnBrowse">Browse</s:String>
+    <s:String x:Key="BtnClear">Clear</s:String>
     <s:String x:Key="SectionFilterMode">Filter Mode</s:String>
     <s:String x:Key="SectionAppList">Application List</s:String>
-    <s:String x:Key="SectionHotkey">Global Hotkey</s:String>
+    <s:String x:Key="SectionHotkey">App Control</s:String>
+    <s:String x:Key="LabelAppStatus">App Status</s:String>
+    <s:String x:Key="DescAppStatus">Enable or disable auto-scroll functionality</s:String>
     <s:String x:Key="SectionLinks">Links</s:String>
     <s:String x:Key="SectionSupport">Support the Developer</s:String>
     <s:String x:Key="DescSupport">Buy me a coffee ☕</s:String>
     
     <!-- Settings -->
     <s:String x:Key="LabelLanguage">Language</s:String>
+    <s:String x:Key="LabelPerformanceMode">Performance Mode</s:String>
+    <s:String x:Key="DescPerformanceMode">Power Saver uses least resources, High Performance is smoothest</s:String>
+    <s:String x:Key="PerfPowerSaver">Power Saver (30Hz)</s:String>
+    <s:String x:Key="PerfBalanced">Balanced (60Hz)</s:String>
+    <s:String x:Key="PerfHighPerf">High Performance (120Hz)</s:String>
     <s:String x:Key="CheckEnable">Enable Auto-Scroll</s:String>
     <s:String x:Key="DescEnable">Turn on/off the auto-scroll functionality</s:String>
     <s:String x:Key="CheckStartup">Start with Windows</s:String>
@@ -36,6 +51,13 @@
     <s:String x:Key="CheckReadingMode">Enable Reading Mode (Double Click)</s:String>
     <s:String x:Key="DescReadingMode">Double-click middle mouse to activate constant scroll</s:String>
     <s:String x:Key="LabelTriggerKey">Trigger Key</s:String>
+    <s:String x:Key="DescTriggerKey">Enter custom key name (e.g., MiddleMouse, XButton1, F1, F2, etc.) or click "Listen" and press any key</s:String>
+    <s:String x:Key="BtnListen">Listen</s:String>
+    <s:String x:Key="BtnListenTip">Click, then press any key to set it as trigger</s:String>
+    <s:String x:Key="BtnPreset">Preset</s:String>
+    <s:String x:Key="BtnPresetTip">Select a preset key</s:String>
+    <s:String x:Key="ListeningPrompt">Press any key to set as trigger...</s:String>
+    <s:String x:Key="ListenSuccess">Trigger key set to: </s:String>
     <s:String x:Key="KeyMiddleMouse">Middle Mouse Button</s:String>
     <s:String x:Key="KeyXButton1">Mouse Side Button 1 (Back)</s:String>
     <s:String x:Key="KeyXButton2">Mouse Side Button 2 (Forward)</s:String>
@@ -45,9 +67,6 @@
     <s:String x:Key="LabelScrollSpeed">Scroll Speed</s:String>
     <s:String x:Key="LabelDeadzone">Deadzone (Radius)</s:String>
     <s:String x:Key="DescDeadzone">Area where movement is ignored</s:String>
-    
-    <s:String x:Key="LabelToggleShortcut">Global Hotkey (Toggle)</s:String>
-    <s:String x:Key="DescToggleShortcut">Click the box and press keys to record a hotkey</s:String>
 
     <!-- Filtering -->
     <s:String x:Key="RadioBlacklist">Blacklist (Block selected)</s:String>

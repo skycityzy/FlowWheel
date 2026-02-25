@@ -49,6 +49,15 @@ namespace FlowWheel
                     _scrollEngine.Sensitivity = ConfigManager.Current.Sensitivity;
                     _scrollEngine.Deadzone = ConfigManager.Current.Deadzone;
                     _scrollEngine.IsSyncEnabled = ConfigManager.Current.IsSyncScrollEnabled;
+                    
+                    // Set TickRate based on performance mode
+                    _scrollEngine.TickRate = ConfigManager.Current.PerformanceMode switch
+                    {
+                        PerformanceMode.PowerSaver => 30,
+                        PerformanceMode.Balanced => 60,
+                        PerformanceMode.HighPerformance => 120,
+                        _ => 60
+                    };
                 }
 
                 _mouseHook = new MouseHook();
@@ -143,7 +152,7 @@ namespace FlowWheel
 
             if (_settingsWindow == null)
             {
-                _settingsWindow = new SettingsWindow(_scrollEngine, _autoScrollManager, _windowManager);
+                _settingsWindow = new SettingsWindow(_scrollEngine, _autoScrollManager, _windowManager, _mouseHook, _keyboardHook);
             }
             else
             {
@@ -151,7 +160,7 @@ namespace FlowWheel
                 // SettingsWindow hides on close usually.
                 if (!_settingsWindow.IsLoaded)
                 {
-                    _settingsWindow = new SettingsWindow(_scrollEngine, _autoScrollManager, _windowManager);
+                    _settingsWindow = new SettingsWindow(_scrollEngine, _autoScrollManager, _windowManager, _mouseHook, _keyboardHook);
                 }
             }
             _settingsWindow.Show();

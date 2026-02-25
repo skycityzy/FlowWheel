@@ -30,7 +30,7 @@ namespace FlowWheel.Core
         // Settings
         public float Sensitivity { get; set; } = 0.8f; // Speed multiplier
         public int Deadzone { get; set; } = 20; // Pixels
-        public int TickRate { get; set; } = 120; // Updates per second
+        public int TickRate { get; set; } = 60; // Updates per second (reduced from 120 for lower CPU usage)
         public int MinStep { get; set; } = 1; // Minimum delta to send (fix for Explorer/Win32)
         public double Friction { get; set; } = 5.0; // Friction factor
         public double ResponseTime { get; set; } = 0.04;

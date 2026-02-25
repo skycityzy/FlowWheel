@@ -19,19 +19,22 @@ namespace FlowWheel.UI
     {
         private readonly ScrollEngine _engine;
         private readonly AutoScrollManager _manager;
+        private readonly MouseHook? _mouseHook;
+        private readonly KeyboardHook? _keyboardHook;
         private WindowManager _windowManager;
         private bool _isDarkMode = false;
-        private bool _isRecordingHotkey = false;
-        private string _tempHotkey = "";
         private string _currentPage = "General";
         private bool _isNavigating = false;
+        private bool _isListening = false;
 
-        public SettingsWindow(ScrollEngine engine, AutoScrollManager manager, WindowManager windowManager)
+        public SettingsWindow(ScrollEngine engine, AutoScrollManager manager, WindowManager windowManager, MouseHook? mouseHook = null, KeyboardHook? keyboardHook = null)
         {
             InitializeComponent();
             _engine = engine;
             _manager = manager;
             _windowManager = windowManager;
+            _mouseHook = mouseHook;
+            _keyboardHook = keyboardHook;
 
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             if (version != null)
@@ -62,15 +65,9 @@ namespace FlowWheel.UI
             else
                 RadioClickToggle.IsChecked = true;
 
-            foreach (ComboBoxItem item in TriggerKeyCombo.Items)
-            {
-                if (item.Tag?.ToString() == ConfigManager.Current.TriggerKey)
-                {
-                    item.IsSelected = true;
-                    break;
-                }
-            }
-            
+            // Initialize Trigger Key Input
+            TriggerKeyInput.Text = ConfigManager.Current.TriggerKey;
+
             if (ConfigManager.Current.IsWhitelistMode)
             {
                 RadioWhitelist.IsChecked = true;
@@ -82,7 +79,8 @@ namespace FlowWheel.UI
                 FilterModeHelpText.Text = "Processes in this list will be ignored (auto-scroll disabled).";
             }
             
-            HotkeyInput.Text = string.IsNullOrEmpty(ConfigManager.Current.ToggleHotkey) ? "Click to set hotkey..." : ConfigManager.Current.ToggleHotkey;
+            // Initialize App Status Toggle
+            AppStatusToggle.IsOn = ConfigManager.Current.IsEnabled;
 
             foreach (ComboBoxItem item in LanguageCombo.Items)
             {
@@ -92,6 +90,20 @@ namespace FlowWheel.UI
                     break;
                 }
             }
+
+            // Initialize Performance Mode
+            foreach (ComboBoxItem item in PerformanceModeCombo.Items)
+            {
+                if (item.Tag?.ToString() == ConfigManager.Current.PerformanceMode.ToString())
+                {
+                    item.IsSelected = true;
+                    break;
+                }
+            }
+
+            // Initialize Custom Icon
+            CustomIconPathInput.Text = ConfigManager.Current.CustomIconPath;
+            IconSizeSlider.Value = ConfigManager.Current.IconSize;
 
             RefreshBlacklist();
         }
@@ -112,6 +124,9 @@ namespace FlowWheel.UI
                 ConfigManager.Current.IsEnabled = EnableToggle.IsOn;
                 if (_manager != null) _manager.IsEnabled = EnableToggle.IsOn;
                 ConfigManager.Save();
+                // Sync with AppStatusToggle
+                if (AppStatusToggle.IsOn != EnableToggle.IsOn)
+                    AppStatusToggle.IsOn = EnableToggle.IsOn;
             };
 
             StartupToggle.IsOnChanged += (s, e) =>
@@ -132,6 +147,16 @@ namespace FlowWheel.UI
             {
                 ConfigManager.Current.IsReadingModeEnabled = ReadingModeToggle.IsOn;
                 ConfigManager.Save();
+            };
+
+            AppStatusToggle.IsOnChanged += (s, e) =>
+            {
+                ConfigManager.Current.IsEnabled = AppStatusToggle.IsOn;
+                if (_manager != null) _manager.IsEnabled = AppStatusToggle.IsOn;
+                ConfigManager.Save();
+                // Sync with EnableToggle
+                if (EnableToggle.IsOn != AppStatusToggle.IsOn)
+                    EnableToggle.IsOn = AppStatusToggle.IsOn;
             };
 
             RadioClickToggle.Checked += (s, e) => { ConfigManager.Current.TriggerMode = "Toggle"; ConfigManager.Save(); };
@@ -251,86 +276,335 @@ namespace FlowWheel.UI
             };
         }
 
+        private bool _isAnimating = false; // 防止重复点击
+
         private void SetupDarkMode()
         {
             _isDarkMode = ConfigManager.Current.IsDarkMode;
             DarkModeToggle.IsOn = _isDarkMode;
+            
+            // Start decoration animations
+            StartCloudAnimations();
+            StartStarTwinkleAnimations();
+            
+            // Apply initial decoration visibility
+            UpdateDecorationVisibility(_isDarkMode, false);
+            
+            // Apply window frame theme
+            ThemeManager.SetWindowFrameTheme(this, _isDarkMode);
 
             DarkModeToggle.IsOnChanged += (s, e) =>
             {
-                _isDarkMode = DarkModeToggle.IsOn;
-                ConfigManager.Current.IsDarkMode = _isDarkMode;
-                ConfigManager.Save();
-
-                if (DarkModeOverlay != null)
+                if (_isAnimating) 
                 {
-                    // 获取开关在窗口中的位置
-                    var togglePos = DarkModeToggle.TransformToAncestor(this).Transform(new Point(0, 0));
-                    var toggleCenterX = togglePos.X + DarkModeToggle.ActualWidth / 2;
-                    var toggleCenterY = togglePos.Y + DarkModeToggle.ActualHeight / 2;
+                    DarkModeToggle.IsOn = _isDarkMode; // Restore state
+                    return;
+                }
+                
+                _isAnimating = true;
+                bool newIsDark = DarkModeToggle.IsOn;
+                
+                // Get toggle position in window (center point)
+                var togglePos = DarkModeToggle.TransformToAncestor(this).Transform(new Point(0, 0));
+                var rippleX = togglePos.X + DarkModeToggle.ActualWidth / 2;
+                var rippleY = togglePos.Y + DarkModeToggle.ActualHeight / 2;
 
-                    // 设置目标颜色
-                    var targetColor = _isDarkMode 
-                        ? MediaColor.FromRgb(26, 26, 46) 
-                        : MediaColor.FromRgb(245, 245, 247);
-                    DarkModeOverlay.Background = new SolidColorBrush(targetColor);
-                    
-                    // 重置状态
-                    DarkModeOverlay.Opacity = 1;
-                    OverlayScale.ScaleX = 0;
-                    OverlayScale.ScaleY = 0;
+                // Set water drop color
+                var targetColor = newIsDark 
+                    ? MediaColor.FromRgb(26, 26, 46) 
+                    : MediaColor.FromRgb(245, 245, 247);
+                WaterDrop.Fill = new SolidColorBrush(targetColor);
 
-                    // 设置缩放中心为开关位置
-                    OverlayScale.CenterX = toggleCenterX;
-                    OverlayScale.CenterY = toggleCenterY;
+                // Calculate max radius needed to cover entire window
+                double maxDistX = Math.Max(rippleX, ActualWidth - rippleX);
+                double maxDistY = Math.Max(rippleY, ActualHeight - rippleY);
+                double maxRadius = Math.Sqrt(maxDistX * maxDistX + maxDistY * maxDistY) * 2;
 
-                    // 计算需要覆盖整个窗口的缩放比例
-                    double maxDist = Math.Max(
-                        Math.Max(toggleCenterX, ActualWidth - toggleCenterX),
-                        Math.Max(toggleCenterY, ActualHeight - toggleCenterY)
-                    );
-                    double targetScale = (maxDist * 2.5) / Math.Min(ActualWidth, ActualHeight);
-
-                    // 使用弹性动画效果
-                    var elasticEase = new ElasticEase 
-                    { 
-                        EasingMode = EasingMode.EaseOut,
-                        Oscillations = 1,
-                        Springiness = 8
-                    };
-
-                    var scaleAnim = new DoubleAnimation
-                    {
-                        From = 0,
-                        To = targetScale,
-                        Duration = TimeSpan.FromMilliseconds(700),
-                        EasingFunction = elasticEase
-                    };
-
-                    var opacityAnim = new DoubleAnimation
-                    {
-                        From = 1,
-                        To = 0,
-                        Duration = TimeSpan.FromMilliseconds(300),
-                        BeginTime = TimeSpan.FromMilliseconds(500),
-                        EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-                    };
-
-                    scaleAnim.Completed += (sender, args) =>
-                    {
-                        ThemeManager.ApplyTheme(_isDarkMode);
-                        DarkModeOverlay.ClearValue(Border.BackgroundProperty);
-                    };
-
-                    DarkModeOverlay.BeginAnimation(OpacityProperty, opacityAnim);
-                    OverlayScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-                    OverlayScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+                if (newIsDark)
+                {
+                    // Light -> Dark: Expand from click point
+                    DoExpandAnimation(rippleX, rippleY, maxRadius, newIsDark);
                 }
                 else
                 {
-                    ThemeManager.ApplyTheme(_isDarkMode);
+                    // Dark -> Light: Contract to click point
+                    DoContractAnimation(rippleX, rippleY, maxRadius, newIsDark);
                 }
             };
+        }
+        
+        private void UpdateDecorationVisibility(bool isDark, bool animate)
+        {
+            if (animate)
+            {
+                var duration = TimeSpan.FromMilliseconds(500);
+                
+                // Stars fade
+                var starsOpacityAnim = new DoubleAnimation
+                {
+                    To = isDark ? 1 : 0,
+                    Duration = duration,
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                StarsCanvas.BeginAnimation(OpacityProperty, starsOpacityAnim);
+                
+                // Clouds fade
+                var cloudsOpacityAnim = new DoubleAnimation
+                {
+                    To = isDark ? 0 : 0.8,
+                    Duration = duration,
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                CloudsCanvas.BeginAnimation(OpacityProperty, cloudsOpacityAnim);
+            }
+            else
+            {
+                StarsCanvas.Opacity = isDark ? 1 : 0;
+                CloudsCanvas.Opacity = isDark ? 0 : 0.8;
+            }
+        }
+        
+        private void StartCloudAnimations()
+        {
+            // Cloud1 - slow drift from left to right (bottom layer)
+            var cloud1Anim = new DoubleAnimation
+            {
+                From = -150,
+                To = 900,
+                Duration = TimeSpan.FromSeconds(50),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            Cloud1.BeginAnimation(Canvas.LeftProperty, cloud1Anim);
+            
+            // Cloud2 - medium speed drift (bottom layer)
+            var cloud2Anim = new DoubleAnimation
+            {
+                From = 900,
+                To = -150,
+                Duration = TimeSpan.FromSeconds(45),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            Cloud2.BeginAnimation(Canvas.LeftProperty, cloud2Anim);
+            
+            // Cloud3 - faster drift (bottom layer)
+            var cloud3Anim = new DoubleAnimation
+            {
+                From = -100,
+                To = 900,
+                Duration = TimeSpan.FromSeconds(38),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            Cloud3.BeginAnimation(Canvas.LeftProperty, cloud3Anim);
+            
+            // Cloud4 - middle layer cloud
+            if (Cloud4 != null)
+            {
+                var cloud4Anim = new DoubleAnimation
+                {
+                    From = 850,
+                    To = -100,
+                    Duration = TimeSpan.FromSeconds(60),
+                    RepeatBehavior = RepeatBehavior.Forever
+                };
+                Cloud4.BeginAnimation(Canvas.LeftProperty, cloud4Anim);
+            }
+            
+            // Cloud5 - middle layer cloud
+            if (Cloud5 != null)
+            {
+                var cloud5Anim = new DoubleAnimation
+                {
+                    From = -80,
+                    To = 850,
+                    Duration = TimeSpan.FromSeconds(55),
+                    RepeatBehavior = RepeatBehavior.Forever
+                };
+                Cloud5.BeginAnimation(Canvas.LeftProperty, cloud5Anim);
+            }
+            
+            // Cloud6 - top layer cloud (very slow, subtle)
+            if (Cloud6 != null)
+            {
+                var cloud6Anim = new DoubleAnimation
+                {
+                    From = 900,
+                    To = -100,
+                    Duration = TimeSpan.FromSeconds(70),
+                    RepeatBehavior = RepeatBehavior.Forever
+                };
+                Cloud6.BeginAnimation(Canvas.LeftProperty, cloud6Anim);
+            }
+        }
+        
+        private void StartStarTwinkleAnimations()
+        {
+            var stars = new[] { DecoStar1, DecoStar2, DecoStar3, DecoStar4, DecoStar5, DecoStar6, DecoStar7, DecoStar8,
+                                DecoStar9, DecoStar10, DecoStar11, DecoStar12, DecoStar13, DecoStar14, DecoStar15,
+                                DecoStar16, DecoStar17, DecoStar18, DecoStar19, DecoStar20, DecoStar21, DecoStar22, DecoStar23 };
+            var random = new Random();
+            
+            for (int i = 0; i < stars.Length; i++)
+            {
+                var star = stars[i];
+                if (star == null) continue;
+                
+                // Random initial delay for each star
+                double initialDelay = random.Next(0, 4000) / 1000.0;
+                
+                // Create twinkling animation with random timing
+                var storyboard = new Storyboard();
+                
+                var opacityAnim = new DoubleAnimationUsingKeyFrames
+                {
+                    RepeatBehavior = RepeatBehavior.Forever,
+                    BeginTime = TimeSpan.FromSeconds(initialDelay)
+                };
+                
+                // Add key frames for twinkling effect
+                double cycleDuration = 2.0 + random.NextDouble() * 3.0; // 2-5 seconds cycle
+                double baseOpacity = 0.3 + random.NextDouble() * 0.3; // Base opacity varies
+                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))));
+                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(Math.Min(1.0, baseOpacity + 0.5), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.25))));
+                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity + 0.2, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.5))));
+                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(Math.Min(1.0, baseOpacity + 0.4), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.75))));
+                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration))));
+                
+                Storyboard.SetTarget(opacityAnim, star);
+                Storyboard.SetTargetProperty(opacityAnim, new PropertyPath(OpacityProperty));
+                storyboard.Children.Add(opacityAnim);
+                
+                // Store storyboard reference to prevent GC
+                star.Tag = storyboard;
+                storyboard.Begin();
+            }
+        }
+
+        /// <summary>
+        /// 扩散动画：从小到大（白天→黑夜）
+        /// </summary>
+        private void DoExpandAnimation(double x, double y, double maxRadius, bool newIsDark)
+        {
+            // 先设置椭圆位置（中心点在点击位置）
+            // Canvas.SetLeft/Top 设置的是左上角，所以需要偏移
+            Canvas.SetLeft(WaterDrop, x);
+            Canvas.SetTop(WaterDrop, y);
+            
+            // 使用 Margin 负值让椭圆中心对齐点击位置
+            WaterDrop.Margin = new Thickness(0, 0, 0, 0);
+            WaterDrop.Width = 0;
+            WaterDrop.Height = 0;
+
+            // 宽高动画
+            var sizeAnim = new DoubleAnimation
+            {
+                From = 0,
+                To = maxRadius,
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Margin 动画，让椭圆中心始终在点击位置
+            var marginAnim = new ThicknessAnimation
+            {
+                From = new Thickness(-0, -0, 0, 0),
+                To = new Thickness(-maxRadius / 2, -maxRadius / 2, 0, 0),
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // 350ms 后切换主题（动画进行中）
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(350)
+            };
+            timer.Tick += (sender, args) =>
+            {
+                timer.Stop();
+                ConfigManager.Current.IsDarkMode = newIsDark;
+                ConfigManager.Save();
+                ThemeManager.ApplyTheme(newIsDark);
+                ThemeManager.SetWindowFrameTheme(this, newIsDark);
+                _isDarkMode = newIsDark;
+                // Update decoration visibility
+                UpdateDecorationVisibility(newIsDark, true);
+            };
+            timer.Start();
+
+            sizeAnim.Completed += (sender, args) =>
+            {
+                WaterDrop.Width = 0;
+                WaterDrop.Height = 0;
+                WaterDrop.Margin = new Thickness(0);
+                _isAnimating = false;
+            };
+
+            WaterDrop.BeginAnimation(FrameworkElement.WidthProperty, sizeAnim);
+            WaterDrop.BeginAnimation(FrameworkElement.HeightProperty, new DoubleAnimation
+            {
+                From = 0,
+                To = maxRadius,
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            });
+            WaterDrop.BeginAnimation(FrameworkElement.MarginProperty, marginAnim);
+        }
+
+        /// <summary>
+        /// 收缩动画：从大到小（黑夜→白天）
+        /// </summary>
+        private void DoContractAnimation(double x, double y, double maxRadius, bool newIsDark)
+        {
+            // 先填充整个窗口，然后收缩到点击点
+            Canvas.SetLeft(WaterDrop, x);
+            Canvas.SetTop(WaterDrop, y);
+            WaterDrop.Width = maxRadius;
+            WaterDrop.Height = maxRadius;
+            WaterDrop.Margin = new Thickness(-maxRadius / 2, -maxRadius / 2, 0, 0);
+
+            // 宽高动画：从大到小
+            var sizeAnim = new DoubleAnimation
+            {
+                From = maxRadius,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Margin 动画
+            var marginAnim = new ThicknessAnimation
+            {
+                From = new Thickness(-maxRadius / 2, -maxRadius / 2, 0, 0),
+                To = new Thickness(0, 0, 0, 0),
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // 立即切换主题（因为是从大到小收缩，背景色要先变）
+            ConfigManager.Current.IsDarkMode = newIsDark;
+            ConfigManager.Save();
+            ThemeManager.ApplyTheme(newIsDark);
+            ThemeManager.SetWindowFrameTheme(this, newIsDark);
+            _isDarkMode = newIsDark;
+            // Update decoration visibility
+            UpdateDecorationVisibility(newIsDark, true);
+
+            sizeAnim.Completed += (sender, args) =>
+            {
+                WaterDrop.Width = 0;
+                WaterDrop.Height = 0;
+                WaterDrop.Margin = new Thickness(0);
+                _isAnimating = false;
+            };
+
+            WaterDrop.BeginAnimation(FrameworkElement.WidthProperty, sizeAnim);
+            WaterDrop.BeginAnimation(FrameworkElement.HeightProperty, new DoubleAnimation
+            {
+                From = maxRadius,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            });
+            WaterDrop.BeginAnimation(FrameworkElement.MarginProperty, marginAnim);
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
@@ -418,61 +692,6 @@ namespace FlowWheel.UI
             ConfigManager.Save();
         }
 
-        private void HotkeyInput_GotFocus(object sender, RoutedEventArgs e)
-        {
-            _isRecordingHotkey = true;
-            HotkeyInput.Background = new SolidColorBrush(MediaColor.FromRgb(240, 248, 255));
-            HotkeyInput.Text = "Press keys...";
-        }
-
-        private void HotkeyInput_LostFocus(object sender, RoutedEventArgs e)
-        {
-            _isRecordingHotkey = false;
-            HotkeyInput.Background = (Brush)FindResource("Brush.Control.Background");
-            
-            if (string.IsNullOrEmpty(_tempHotkey))
-                HotkeyInput.Text = ConfigManager.Current.ToggleHotkey;
-        }
-
-        private void HotkeyInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (!_isRecordingHotkey) return;
-
-            e.Handled = true;
-
-            var modifiers = new System.Collections.Generic.List<string>();
-            if ((System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) != 0) modifiers.Add("Ctrl");
-            if ((System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Alt) != 0) modifiers.Add("Alt");
-            if ((System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Shift) != 0) modifiers.Add("Shift");
-
-            var key = e.Key;
-            if (key == System.Windows.Input.Key.System) key = e.SystemKey;
-
-            if (key == System.Windows.Input.Key.LeftCtrl || key == System.Windows.Input.Key.RightCtrl ||
-                key == System.Windows.Input.Key.LeftAlt || key == System.Windows.Input.Key.RightAlt ||
-                key == System.Windows.Input.Key.LeftShift || key == System.Windows.Input.Key.RightShift)
-                return;
-
-            string keyStr = key.ToString();
-            string result = string.Join("+", modifiers);
-            if (!string.IsNullOrEmpty(result)) result += "+";
-            result += keyStr;
-
-            _tempHotkey = result;
-            HotkeyInput.Text = result;
-            
-            ConfigManager.Current.ToggleHotkey = result;
-            ConfigManager.Save();
-        }
-
-        private void ClearHotkey_Click(object sender, RoutedEventArgs e)
-        {
-            ConfigManager.Current.ToggleHotkey = "";
-            ConfigManager.Save();
-            HotkeyInput.Text = "";
-            _tempHotkey = "";
-        }
-
         private void BrowseApp_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
@@ -535,15 +754,302 @@ namespace FlowWheel.UI
             }
         }
 
-        private void TriggerKeyCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void TriggerKeyInput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TriggerKeyCombo == null) return;
-
-            if (TriggerKeyCombo.SelectedItem is ComboBoxItem item && item.Tag is string key)
+            if (TriggerKeyInput == null) return;
+            
+            string key = TriggerKeyInput.Text.Trim();
+            if (!string.IsNullOrEmpty(key))
             {
                 ConfigManager.Current.TriggerKey = key;
                 ConfigManager.Save();
             }
+        }
+
+        private void TriggerKeyPreset_Click(object sender, RoutedEventArgs e)
+        {
+            // Show preset options - for now just toggle between common options
+            var presets = new[] { "MiddleMouse", "XButton1", "XButton2", "F1", "F2", "F3", "F4" };
+            int currentIndex = Array.IndexOf(presets, ConfigManager.Current.TriggerKey);
+            int nextIndex = (currentIndex + 1) % presets.Length;
+            
+            TriggerKeyInput.Text = presets[nextIndex];
+        }
+
+        private void TriggerKeyPreset_Select(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string key)
+            {
+                TriggerKeyInput.Text = key;
+            }
+        }
+
+        private void BtnListen_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isListening)
+            {
+                // Stop listening
+                StopListening();
+                return;
+            }
+
+            // Start listening
+            StartListening();
+        }
+
+        private void StartListening()
+        {
+            if (_mouseHook == null && _keyboardHook == null)
+            {
+                WpfMessageBox.Show("No input hooks available.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _isListening = true;
+            BtnListen.Content = FindResource("ListeningPrompt") ?? "Cancel";
+            TriggerKeyInput.Text = "";
+            TriggerKeyInput.IsEnabled = false;
+
+            // Subscribe to mouse events
+            if (_mouseHook != null)
+            {
+                _mouseHook.MouseEvent += OnMouseEventForListening;
+            }
+            
+            // Subscribe to keyboard events
+            if (_keyboardHook != null)
+            {
+                _keyboardHook.KeyboardEvent += OnKeyboardEventForListening;
+            }
+        }
+
+        private void StopListening()
+        {
+            _isListening = false;
+            BtnListen.Content = FindResource("BtnListen") ?? "Listen";
+            TriggerKeyInput.IsEnabled = true;
+
+            // Unsubscribe from mouse events
+            if (_mouseHook != null)
+            {
+                _mouseHook.MouseEvent -= OnMouseEventForListening;
+            }
+            
+            // Unsubscribe from keyboard events
+            if (_keyboardHook != null)
+            {
+                _keyboardHook.KeyboardEvent -= OnKeyboardEventForListening;
+            }
+        }
+
+        private void OnKeyboardEventForListening(object? sender, KeyboardEventArgs e)
+        {
+            // Only handle key down events
+            if (e.Message != NativeMethods.WM_KEYDOWN && e.Message != NativeMethods.WM_SYSKEYDOWN)
+                return;
+            
+            // Ignore modifier keys themselves
+            if (e.VkCode == NativeMethods.VK_CONTROL || e.VkCode == NativeMethods.VK_SHIFT || 
+                e.VkCode == NativeMethods.VK_MENU || e.VkCode == NativeMethods.VK_LCONTROL ||
+                e.VkCode == NativeMethods.VK_RCONTROL || e.VkCode == NativeMethods.VK_LSHIFT ||
+                e.VkCode == NativeMethods.VK_RSHIFT || e.VkCode == NativeMethods.VK_LMENU ||
+                e.VkCode == NativeMethods.VK_RMENU)
+                return;
+            
+            string? keyName = GetKeyName(e.VkCode);
+            
+            if (!string.IsNullOrEmpty(keyName))
+            {
+                // Build combined key name with modifiers
+                string fullKeyName = BuildCombinedKeyName(keyName);
+                
+                // Update UI on dispatcher thread
+                Dispatcher.Invoke(() =>
+                {
+                    TriggerKeyInput.Text = fullKeyName;
+                    ConfigManager.Current.TriggerKey = fullKeyName;
+                    ConfigManager.Save();
+                    StopListening();
+                });
+            }
+        }
+
+        private string? GetKeyName(int vkCode)
+        {
+            // Map virtual key codes to key names
+            return vkCode switch
+            {
+                // Function keys
+                0x70 => "F1",
+                0x71 => "F2",
+                0x72 => "F3",
+                0x73 => "F4",
+                0x74 => "F5",
+                0x75 => "F6",
+                0x76 => "F7",
+                0x77 => "F8",
+                0x78 => "F9",
+                0x79 => "F10",
+                0x7A => "F11",
+                0x7B => "F12",
+                
+                // Number keys
+                0x30 => "D0",
+                0x31 => "D1",
+                0x32 => "D2",
+                0x33 => "D3",
+                0x34 => "D4",
+                0x35 => "D5",
+                0x36 => "D6",
+                0x37 => "D7",
+                0x38 => "D8",
+                0x39 => "D9",
+                
+                // Letter keys
+                0x41 => "A",
+                0x42 => "B",
+                0x43 => "C",
+                0x44 => "D",
+                0x45 => "E",
+                0x46 => "F",
+                0x47 => "G",
+                0x48 => "H",
+                0x49 => "I",
+                0x4A => "J",
+                0x4B => "K",
+                0x4C => "L",
+                0x4D => "M",
+                0x4E => "N",
+                0x4F => "O",
+                0x50 => "P",
+                0x51 => "Q",
+                0x52 => "R",
+                0x53 => "S",
+                0x54 => "T",
+                0x55 => "U",
+                0x56 => "V",
+                0x57 => "W",
+                0x58 => "X",
+                0x59 => "Y",
+                0x5A => "Z",
+                
+                // Modifier keys
+                0xA0 => "LShift",
+                0xA1 => "RShift",
+                0xA2 => "LCtrl",
+                0xA3 => "RCtrl",
+                0xA4 => "LAlt",
+                0xA5 => "RAlt",
+                0x5B => "LWin",
+                0x5C => "RWin",
+                
+                // Other keys
+                0x20 => "Space",
+                0x0D => "Return",
+                0x09 => "Tab",
+                0x08 => "Backspace",
+                0x2D => "Insert",
+                0x2E => "Delete",
+                0x23 => "End",
+                0x24 => "Home",
+                0x21 => "PageUp",
+                0x22 => "PageDown",
+                0x25 => "Left",
+                0x26 => "Up",
+                0x27 => "Right",
+                0x28 => "Down",
+                0x2C => "PrintScreen",
+                0x2B => "Execute",
+                0x3B => "Help",
+                
+                // Punctuation
+                0xBF => "OemQuestion", // /
+                0xC0 => "OemTilde", // `
+                0xDB => "OemOpenBrackets", // [
+                0xDC => "OemPipe", // \
+                0xDD => "OemCloseBrackets", // ]
+                0xDE => "OemQuotes", // '
+                0xBC => "OemComma", // ,
+                0xBE => "OemPeriod", // .
+                0xBD => "OemMinus", // -
+                0xBB => "OemPlus", // +
+                
+                // Number pad
+                0x60 => "NumPad0",
+                0x61 => "NumPad1",
+                0x62 => "NumPad2",
+                0x63 => "NumPad3",
+                0x64 => "NumPad4",
+                0x65 => "NumPad5",
+                0x66 => "NumPad6",
+                0x67 => "NumPad7",
+                0x68 => "NumPad8",
+                0x69 => "NumPad9",
+                0x6A => "NumPadMultiply",
+                0x6B => "NumPadAdd",
+                0x6D => "NumPadSubtract",
+                0x6E => "NumPadDecimal",
+                0x6F => "NumPadDivide",
+                
+                _ => null
+            };
+        }
+
+        private void OnMouseEventForListening(object? sender, Core.MouseEventArgs e)
+        {
+            string? keyName = null;
+
+            // Determine which mouse button was pressed
+            switch (e.Message)
+            {
+                case NativeMethods.WM_LBUTTONDOWN:
+                    // Left mouse button is not allowed as trigger key
+                    return;
+                case NativeMethods.WM_RBUTTONDOWN:
+                    // Right mouse button is not allowed as trigger key
+                    return;
+                case NativeMethods.WM_MBUTTONDOWN:
+                    keyName = "MiddleMouse";
+                    break;
+                case NativeMethods.WM_XBUTTONDOWN:
+                    // XButton1 or XButton2
+                    int xButton = (e.MouseData >> 16);
+                    if (xButton == 1)
+                        keyName = "XButton1";
+                    else if (xButton == 2)
+                        keyName = "XButton2";
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(keyName))
+            {
+                // Build combined key name with modifiers
+                string fullKeyName = BuildCombinedKeyName(keyName);
+                
+                // Update UI on dispatcher thread
+                Dispatcher.Invoke(() =>
+                {
+                    TriggerKeyInput.Text = fullKeyName;
+                    ConfigManager.Current.TriggerKey = fullKeyName;
+                    ConfigManager.Save();
+                    StopListening();
+                });
+            }
+        }
+
+        private string BuildCombinedKeyName(string baseKey)
+        {
+            var modifiers = new System.Collections.Generic.List<string>();
+            
+            if (NativeMethods.IsCtrlPressed())
+                modifiers.Add("Ctrl");
+            if (NativeMethods.IsAltPressed())
+                modifiers.Add("Alt");
+            if (NativeMethods.IsShiftPressed())
+                modifiers.Add("Shift");
+            
+            modifiers.Add(baseKey);
+            return string.Join("+", modifiers);
         }
 
         private void LanguageCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -556,6 +1062,64 @@ namespace FlowWheel.UI
                 ConfigManager.Current.Language = langCode;
                 ConfigManager.Save();
             }
+        }
+
+        private void PerformanceModeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (PerformanceModeCombo == null) return;
+
+            if (PerformanceModeCombo.SelectedItem is ComboBoxItem item && item.Tag is string modeStr)
+            {
+                if (Enum.TryParse<PerformanceMode>(modeStr, out var mode))
+                {
+                    ConfigManager.Current.PerformanceMode = mode;
+                    ConfigManager.Save();
+                    
+                    // Update ScrollEngine TickRate based on performance mode
+                    if (_engine != null)
+                    {
+                        _engine.TickRate = mode switch
+                        {
+                            PerformanceMode.PowerSaver => 30,
+                            PerformanceMode.Balanced => 60,
+                            PerformanceMode.HighPerformance => 120,
+                            _ => 60
+                        };
+                    }
+                }
+            }
+        }
+
+        private void BrowseIcon_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico|All files (*.*)|*.*",
+                Title = "Select Custom Icon"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string path = dialog.FileName;
+                ConfigManager.Current.CustomIconPath = path;
+                ConfigManager.Save();
+                CustomIconPathInput.Text = path;
+            }
+        }
+
+        private void ClearIcon_Click(object sender, RoutedEventArgs e)
+        {
+            ConfigManager.Current.CustomIconPath = "";
+            ConfigManager.Save();
+            CustomIconPathInput.Text = "";
+        }
+
+        private void IconSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int size = (int)e.NewValue;
+            ConfigManager.Current.IconSize = size;
+            if (IconSizeValueText != null) IconSizeValueText.Text = $"{size}px";
+            ConfigManager.Save();
         }
 
         private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -671,7 +1235,16 @@ namespace FlowWheel.UI
                 if (key == null) return;
 
                 string appName = "FlowWheel";
-                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                // Use Process.MainModule for reliable path (works with single-file publish)
+                string? exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                
+                if (string.IsNullOrEmpty(exePath)) 
+                {
+                    // Fallback to Assembly.Location
+                    exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                }
+                
+                if (string.IsNullOrEmpty(exePath)) return;
 
                 if (enable)
                 {

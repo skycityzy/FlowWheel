@@ -11,102 +11,98 @@
     
     <Grid>
         <Canvas x:Name="MainCanvas">
-            <Grid x:Name="Anchor" Width="48" Height="48" Visibility="Collapsed">
+            <Grid x:Name="Anchor" Visibility="Collapsed">
                 <!-- Custom Image -->
                 <Image x:Name="CustomAnchorImage" Stretch="Uniform" Visibility="Collapsed"/>
                 
-                <!-- Default Wheel Icon - Smaller and lighter -->
-                <Grid x:Name="WheelIndicator" Width="48" Height="48">
-                    <!-- Outer Ring -->
-                    <Ellipse x:Name="OuterRing" Width="40" Height="40" 
-                             StrokeThickness="2"
-                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Ellipse.Stroke>
-                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                <GradientStop Color="#4DA6FF" Offset="0"/>
-                                <GradientStop Color="#007ACC" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Ellipse.Stroke>
-                        <Ellipse.Fill>
-                            <RadialGradientBrush>
-                                <GradientStop Color="#CC1A1A2E" Offset="0"/>
-                                <GradientStop Color="#E616161E" Offset="1"/>
-                            </RadialGradientBrush>
-                        </Ellipse.Fill>
-                        <Ellipse.Effect>
-                            <DropShadowEffect Color="#4DA6FF" BlurRadius="8" ShadowDepth="0" Opacity="0.4"/>
-                        </Ellipse.Effect>
-                    </Ellipse>
-                    
-                    <!-- Inner Ring -->
-                    <Ellipse Width="16" Height="16" 
-                             Stroke="#4DA6FF" StrokeThickness="1.5" Opacity="0.5"
-                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    
-                    <!-- Center Dot -->
-                    <Ellipse x:Name="CenterDot" Width="5" Height="5" Fill="#4DA6FF"
-                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Ellipse.Effect>
-                            <DropShadowEffect Color="#4DA6FF" BlurRadius="4" ShadowDepth="0" Opacity="0.8"/>
-                        </Ellipse.Effect>
-                    </Ellipse>
-                    
-                    <!-- Spinning Wheel Lines -->
-                    <Grid x:Name="SpinningWheel" 
-                          Width="48" Height="48"
-                          HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Grid.RenderTransform>
-                            <RotateTransform x:Name="WheelRotate" Angle="0" CenterX="24" CenterY="24"/>
-                        </Grid.RenderTransform>
-                        <!-- Up -->
-                        <Path Data="M24,6 L24,14" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
-                        <!-- Down -->
-                        <Path Data="M24,34 L24,42" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
-                        <!-- Left -->
-                        <Path Data="M6,24 L14,24" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
-                        <!-- Right -->
-                        <Path Data="M34,24 L42,24" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
+                <!-- Default Wheel Icon -->
+                <Canvas x:Name="WheelIndicatorCanvas">
+                    <Grid x:Name="WheelIndicator">
+                        <!-- Outer Ring -->
+                        <Ellipse x:Name="OuterRing" 
+                                 StrokeThickness="2"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse.Stroke>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#4DA6FF" Offset="0"/>
+                                    <GradientStop Color="#007ACC" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Ellipse.Stroke>
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#CC1A1A2E" Offset="0"/>
+                                    <GradientStop Color="#E616161E" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#4DA6FF" BlurRadius="8" ShadowDepth="0" Opacity="0.4"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        
+                        <!-- Inner Ring -->
+                        <Ellipse x:Name="InnerRing"
+                                 Stroke="#4DA6FF" StrokeThickness="1.5" Opacity="0.5"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        
+                        <!-- Center Dot -->
+                        <Ellipse x:Name="CenterDot" Fill="#4DA6FF"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#4DA6FF" BlurRadius="4" ShadowDepth="0" Opacity="0.8"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        
+                        <!-- Spinning Wheel Lines -->
+                        <Grid x:Name="SpinningWheel">
+                            <Grid.RenderTransform>
+                                <RotateTransform x:Name="WheelRotate" Angle="0"/>
+                            </Grid.RenderTransform>
+                            <!-- Up -->
+                            <Path x:Name="LineUp" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
+                            <!-- Down -->
+                            <Path x:Name="LineDown" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
+                            <!-- Left -->
+                            <Path x:Name="LineLeft" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
+                            <!-- Right -->
+                            <Path x:Name="LineRight" Stroke="#4DA6FF" StrokeThickness="2" Opacity="0.7"/>
+                        </Grid>
+                        
+                        <!-- Reading Mode Icon -->
+                        <Path x:Name="ReadingIcon" Data="M10,5 L20,15 L10,25 Z" 
+                              Fill="#00DD44" Stretch="Uniform"
+                              Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path.Effect>
+                                <DropShadowEffect Color="#00DD44" BlurRadius="6" ShadowDepth="0" Opacity="0.6"/>
+                            </Path.Effect>
+                        </Path>
                     </Grid>
                     
-                    <!-- Reading Mode Icon -->
-                    <Path x:Name="ReadingIcon" Data="M10,5 L20,15 L10,25 Z" 
-                          Fill="#00DD44" Stretch="Uniform" Width="14" Height="14"
-                          Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Path.Effect>
-                            <DropShadowEffect Color="#00DD44" BlurRadius="6" ShadowDepth="0" Opacity="0.6"/>
-                        </Path.Effect>
-                    </Path>
-                    
-                    <!-- Direction Arrows - Fixed paths -->
+                    <!-- Direction Arrows - positioned on Canvas for precise alignment -->
                     <Path x:Name="ArrowUp" Data="M0,8 L6,0 L12,8" Stroke="#FFFFFF" StrokeThickness="2.5" 
-                          Width="12" Height="10"
-                          HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-10,0,0" Visibility="Collapsed">
+                          Width="12" Height="10" Visibility="Collapsed">
                         <Path.Effect>
                             <DropShadowEffect Color="#4DA6FF" BlurRadius="3" ShadowDepth="0" Opacity="0.8"/>
                         </Path.Effect>
                     </Path>
                     <Path x:Name="ArrowDown" Data="M0,0 L6,8 L12,0" Stroke="#FFFFFF" StrokeThickness="2.5" 
-                          Width="12" Height="10"
-                          HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-10" Visibility="Collapsed">
+                          Width="12" Height="10" Visibility="Collapsed">
                         <Path.Effect>
                             <DropShadowEffect Color="#4DA6FF" BlurRadius="3" ShadowDepth="0" Opacity="0.8"/>
                         </Path.Effect>
                     </Path>
                     <Path x:Name="ArrowLeft" Data="M8,0 L0,6 L8,12" Stroke="#FFFFFF" StrokeThickness="2.5" 
-                          Width="10" Height="12"
-                          HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-10,0,0,0" Visibility="Collapsed">
+                          Width="10" Height="12" Visibility="Collapsed">
                         <Path.Effect>
                             <DropShadowEffect Color="#4DA6FF" BlurRadius="3" ShadowDepth="0" Opacity="0.8"/>
                         </Path.Effect>
                     </Path>
                     <Path x:Name="ArrowRight" Data="M0,0 L8,6 L0,12" Stroke="#FFFFFF" StrokeThickness="2.5" 
-                          Width="10" Height="12"
-                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,-10,0" Visibility="Collapsed">
+                          Width="10" Height="12" Visibility="Collapsed">
                         <Path.Effect>
                             <DropShadowEffect Color="#4DA6FF" BlurRadius="3" ShadowDepth="0" Opacity="0.8"/>
                         </Path.Effect>
                     </Path>
-                </Grid>
+                </Canvas>
             </Grid>
         </Canvas>
     </Grid>

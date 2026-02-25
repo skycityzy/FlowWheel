@@ -23,10 +23,79 @@ namespace FlowWheel.Core
         private bool _isActive = false;
         private bool _isEnabled = true;
 
+        // Parsed trigger key components
+        private string _triggerBaseKey = "MiddleMouse";
+        private bool _triggerNeedsCtrl = false;
+        private bool _triggerNeedsShift = false;
+        private bool _triggerNeedsAlt = false;
+        private int _triggerVkCode = 0; // For keyboard keys like F1-F12
+
         public bool IsEnabled
         {
             get => _isEnabled;
             set => _isEnabled = value;
+        }
+
+        /// <summary>
+        /// Parse trigger key string like "MiddleMouse", "Ctrl+MiddleMouse", "Ctrl+Alt+F1"
+        /// </summary>
+        private void ParseTriggerKey(string triggerKey)
+        {
+            _triggerNeedsCtrl = false;
+            _triggerNeedsShift = false;
+            _triggerNeedsAlt = false;
+            _triggerVkCode = 0;
+
+            string[] parts = triggerKey.Split('+');
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i].Trim();
+                if (i < parts.Length - 1)
+                {
+                    // Modifier key
+                    switch (part.ToLower())
+                    {
+                        case "ctrl":
+                        case "control":
+                            _triggerNeedsCtrl = true;
+                            break;
+                        case "shift":
+                            _triggerNeedsShift = true;
+                            break;
+                        case "alt":
+                            _triggerNeedsAlt = true;
+                            break;
+                    }
+                }
+                else
+                {
+                    // Base key
+                    _triggerBaseKey = part;
+                    
+                    // Map F keys to VK codes
+                    if (part.StartsWith("F", StringComparison.OrdinalIgnoreCase) && int.TryParse(part.Substring(1), out int fNum))
+                    {
+                        _triggerVkCode = NativeMethods.VK_F1 + fNum - 1;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check if modifier keys match the trigger requirement
+        /// </summary>
+        private bool CheckModifiers()
+        {
+            // If trigger needs modifiers, check if they are pressed
+            // If trigger doesn't need modifiers, don't check (allow any modifier state)
+            if (_triggerNeedsCtrl || _triggerNeedsAlt || _triggerNeedsShift)
+            {
+                bool ctrlOk = _triggerNeedsCtrl ? NativeMethods.IsCtrlPressed() : true;
+                bool shiftOk = _triggerNeedsShift ? NativeMethods.IsShiftPressed() : true;
+                bool altOk = _triggerNeedsAlt ? NativeMethods.IsAltPressed() : true;
+                return ctrlOk && shiftOk && altOk;
+            }
+            return true; // No modifiers required, always return true
         }
 
         public AutoScrollManager(MouseHook hook, KeyboardHook keyboardHook, ScrollEngine engine, WindowManager windowManager)
@@ -63,7 +132,69 @@ namespace FlowWheel.Core
         {
             if (!_isEnabled) return;
 
-            // Only handle Key Down for toggle
+            // Parse trigger key for keyboard-based triggers (F keys)
+            ParseTriggerKey(ConfigManager.Current.TriggerKey);
+            
+            // Handle F key triggers (F1-F12)
+            if (_triggerVkCode > 0)
+            {
+                bool isKeyDown = (e.Message == NativeMethods.WM_KEYDOWN || e.Message == NativeMethods.WM_SYSKEYDOWN);
+                bool isKeyUp = (e.Message == NativeMethods.WM_KEYUP || e.Message == NativeMethods.WM_SYSKEYUP);
+                
+                if (e.VkCode == _triggerVkCode && CheckModifiers())
+                {
+                    if (isKeyDown)
+                    {
+                        string mode = ConfigManager.Current.TriggerMode;
+                        
+                        // Stop if Reading Mode is active
+                        if (_engine.CurrentState == ScrollState.ReadingMode)
+                        {
+                            StopAutoScroll();
+                            e.Handled = true;
+                            return;
+                        }
+                        
+                        if (mode == "Hold")
+                        {
+                            if (_isActive) StopAutoScroll();
+                            
+                            NativeMethods.POINT pt;
+                            NativeMethods.GetCursorPos(out pt);
+                            var (isBlocked, _) = _windowManager.CheckProcessState(pt);
+                            if (!isBlocked)
+                            {
+                                _engine.Sensitivity = ConfigManager.Current.Sensitivity;
+                                _engine.Deadzone = ConfigManager.Current.Deadzone;
+                                _isDragging = true;
+                                StartAutoScroll(pt);
+                            }
+                        }
+                        else // Toggle Mode
+                        {
+                            ToggleAutoScroll();
+                        }
+                        e.Handled = true;
+                    }
+                    else if (isKeyUp && ConfigManager.Current.TriggerMode == "Hold" && _isActive)
+                    {
+                        // In Hold mode, release on key up
+                        if (_engine.CurrentState == ScrollState.Dragging)
+                        {
+                            _engine.ReleaseDrag();
+                            Application.Current.Dispatcher.InvokeAsync(() => _overlay?.HideAnchor());
+                        }
+                        else
+                        {
+                            StopAutoScroll();
+                        }
+                        e.Handled = true;
+                    }
+                    return;
+                }
+            }
+
+            // Only handle Key Down for toggle hotkey
             if (e.Message == NativeMethods.WM_KEYDOWN || e.Message == NativeMethods.WM_SYSKEYDOWN)
             {
                 // Custom Hotkey Check
@@ -152,26 +283,39 @@ namespace FlowWheel.Core
                 return;
             }
 
-            string trigger = ConfigManager.Current.TriggerKey;
+            // Parse trigger key
+            ParseTriggerKey(ConfigManager.Current.TriggerKey);
             
             // Handle Triggers
             bool isTriggerDown = false;
             bool isTriggerUp = false;
 
-            if (trigger == "MiddleMouse")
+            // Check base key
+            switch (_triggerBaseKey)
             {
-                isTriggerDown = (e.Message == NativeMethods.WM_MBUTTONDOWN);
-                isTriggerUp = (e.Message == NativeMethods.WM_MBUTTONUP);
+                case "MiddleMouse":
+                    isTriggerDown = (e.Message == NativeMethods.WM_MBUTTONDOWN);
+                    isTriggerUp = (e.Message == NativeMethods.WM_MBUTTONUP);
+                    break;
+                case "XButton1":
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 1);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 1);
+                    break;
+                case "XButton2":
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 2);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 2);
+                    break;
+                // LeftMouse and RightMouse are not allowed as trigger keys
             }
-            else if (trigger == "XButton1")
+
+            // Check modifiers for trigger down/up
+            if (isTriggerDown || isTriggerUp)
             {
-                isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 1);
-                isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 1);
-            }
-            else if (trigger == "XButton2")
-            {
-                isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 2);
-                isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 2);
+                if (!CheckModifiers())
+                {
+                    isTriggerDown = false;
+                    isTriggerUp = false;
+                }
             }
 
             // --- Mode Logic Separation ---
@@ -180,7 +324,9 @@ namespace FlowWheel.Core
             if (isTriggerDown)
             {
                 // 1. Reading Mode Check (Always Double Click)
-                if (trigger == "MiddleMouse" && ConfigManager.Current.IsReadingModeEnabled)
+                // Only for MiddleMouse without modifiers
+                if (_triggerBaseKey == "MiddleMouse" && !_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt 
+                    && ConfigManager.Current.IsReadingModeEnabled)
                 {
                     long now = DateTime.Now.Ticks;
                     long diffMs = (now - _lastMiddleClickTime) / 10000;
@@ -290,7 +436,7 @@ namespace FlowWheel.Core
                 // Stop on other clicks
                 if (e.Message == NativeMethods.WM_LBUTTONDOWN || 
                     e.Message == NativeMethods.WM_RBUTTONDOWN ||
-                    (e.Message == NativeMethods.WM_MBUTTONDOWN && trigger != "MiddleMouse") ||
+                    (e.Message == NativeMethods.WM_MBUTTONDOWN && _triggerBaseKey != "MiddleMouse") ||
                     (e.Message == NativeMethods.WM_XBUTTONDOWN && !isTriggerDown))
                 {
                     StopAutoScroll();

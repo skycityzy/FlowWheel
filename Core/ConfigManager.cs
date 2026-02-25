@@ -15,6 +15,13 @@ namespace FlowWheel.Core
         public override string ToString() => ProcessName;
     }
 
+    public enum PerformanceMode
+    {
+        PowerSaver,   // 省电模式 - 30Hz
+        Balanced,     // 平衡模式 - 60Hz  
+        HighPerformance // 高性能模式 - 120Hz
+    }
+
     public class AppConfig
     {
         public string Language { get; set; } = "en-US";
@@ -29,6 +36,23 @@ namespace FlowWheel.Core
         public string ToggleHotkey { get; set; } = "Ctrl+Alt+S"; // New: Custom Hotkey
         public bool IsDarkMode { get; set; } = false; // Dark Mode
         public bool StartupEnabled { get; set; } = false; // Auto-start on boot
+        public PerformanceMode PerformanceMode { get; set; } = PerformanceMode.Balanced; // Performance mode
+        
+        // Custom Icon Settings
+        private string _customIconPath = "";
+        public string CustomIconPath 
+        { 
+            get => _customIconPath;
+            set => _customIconPath = value ?? "";
+        }
+        
+        private int _iconSize = 48; // Default size
+        public int IconSize 
+        {
+            get => _iconSize;
+            set => _iconSize = Math.Clamp(value, 24, 96); // Limit: 24-96 pixels
+        }
+        
         public List<AppProfile> AppProfiles { get; set; } = new List<AppProfile>
         {
             new AppProfile { ProcessName = "flowwheel" },
