@@ -179,7 +179,7 @@ scoop update flowwheel
 您可以在全新的设置面板中管理所有功能：
 
 <div align="center">
- <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/4.png" width="250" alt="FlowWheel 设置界面" />
+ <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets_for_GitHub_Readme/4.png" width="250" alt="FlowWheel 设置界面" />
 </div>
 
 - **触发模式**：
@@ -199,6 +199,10 @@ scoop update flowwheel
    *   滚动 **鼠标滚轮** 可实时调整自动播放速度。
    *   点击任意键停止。
 3.  **同步滚动**：在设置中开启。打开两个文档（分屏或并排），滚动其中一个，另一个紧随其后！
+
+<div align="center">
+ <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets_for_GitHub_Readme/5.png" width="250" alt="FlowWheel 暗夜模式" />
+</div>
 
 ---
 
