@@ -67,7 +67,7 @@ FlowWheel is built as a small set of focused modules with a clear event/data flo
 
 ### Installation
 
-#### Method 1: Scoop (Recommended)
+#### ~~Method 1: Scoop (Recommended)~~
 You can easily install FlowWheel directly from this repository:
 
 ```powershell
@@ -159,7 +159,7 @@ FlowWheel 由一组职责清晰的模块构成，整体数据/事件流非常直
 
 ### 安装方法
 
-#### 方法 1: Scoop (推荐)
+#### ~~方法 1: Scoop (推荐)~~
 如果你是开发者或极客，推荐使用 [Scoop](https://scoop.sh/) 直接安装：
 
 ```powershell
