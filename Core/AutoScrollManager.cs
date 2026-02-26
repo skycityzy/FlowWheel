@@ -69,13 +69,37 @@ namespace FlowWheel.Core
                 }
                 else
                 {
-                    // Base key
-                    _triggerBaseKey = part;
+                    // Base key - normalize to standard format
+                    string normalizedKey = part.ToLower();
                     
-                    // Map F keys to VK codes
-                    if (part.StartsWith("F", StringComparison.OrdinalIgnoreCase) && int.TryParse(part.Substring(1), out int fNum))
+                    // Map F keys to VK codes (F1-F12: 0x70-0x7B)
+                    if (normalizedKey.StartsWith("f") && int.TryParse(part.Substring(1), out int fNum) && fNum >= 1 && fNum <= 24)
                     {
                         _triggerVkCode = NativeMethods.VK_F1 + fNum - 1;
+                        _triggerBaseKey = "F" + fNum; // Normalize to "F1", "F2", etc.
+                    }
+                    // Map letter keys A-Z (VK codes 0x41-0x5A)
+                    else if (normalizedKey.Length == 1 && normalizedKey[0] >= 'a' && normalizedKey[0] <= 'z')
+                    {
+                        _triggerVkCode = (int)char.ToUpper(normalizedKey[0]); // A=65, B=66, ..., Z=90
+                        _triggerBaseKey = char.ToUpper(normalizedKey[0]).ToString();
+                    }
+                    // Map digit keys D0-D9 (VK codes 0x30-0x39)
+                    else if (normalizedKey.Length == 1 && normalizedKey[0] >= '0' && normalizedKey[0] <= '9')
+                    {
+                        _triggerVkCode = (int)'0' + (normalizedKey[0] - '0'); // 0=48, 1=49, ..., 9=57
+                        _triggerBaseKey = "D" + normalizedKey[0]; // Normalize to "D0", "D1", etc.
+                    }
+                    else
+                    {
+                        // Normalize mouse button names
+                        _triggerBaseKey = normalizedKey switch
+                        {
+                            "middlemouse" => "MiddleMouse",
+                            "xbutton1" => "XButton1",
+                            "xbutton2" => "XButton2",
+                            _ => part // Keep original for other keys
+                        };
                     }
                 }
             }
@@ -86,16 +110,22 @@ namespace FlowWheel.Core
         /// </summary>
         private bool CheckModifiers()
         {
-            // If trigger needs modifiers, check if they are pressed
-            // If trigger doesn't need modifiers, don't check (allow any modifier state)
-            if (_triggerNeedsCtrl || _triggerNeedsAlt || _triggerNeedsShift)
+            // If no modifiers required, don't check modifier state (allow any)
+            if (!_triggerNeedsCtrl && !_triggerNeedsAlt && !_triggerNeedsShift)
             {
-                bool ctrlOk = _triggerNeedsCtrl ? NativeMethods.IsCtrlPressed() : true;
-                bool shiftOk = _triggerNeedsShift ? NativeMethods.IsShiftPressed() : true;
-                bool altOk = _triggerNeedsAlt ? NativeMethods.IsAltPressed() : true;
-                return ctrlOk && shiftOk && altOk;
+                return true;
             }
-            return true; // No modifiers required, always return true
+            
+            // If modifiers required, strict matching: required must be pressed, others must not
+            bool isCtrlPressed = NativeMethods.IsCtrlPressed();
+            bool isAltPressed = NativeMethods.IsAltPressed();
+            bool isShiftPressed = NativeMethods.IsShiftPressed();
+            
+            bool ctrlOk = _triggerNeedsCtrl == isCtrlPressed;
+            bool altOk = _triggerNeedsAlt == isAltPressed;
+            bool shiftOk = _triggerNeedsShift == isShiftPressed;
+            
+            return ctrlOk && altOk && shiftOk;
         }
 
         public AutoScrollManager(MouseHook hook, KeyboardHook keyboardHook, ScrollEngine engine, WindowManager windowManager)
