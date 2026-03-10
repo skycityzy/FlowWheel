@@ -10,7 +10,7 @@
  
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.5.5-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.6.0-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
  [English](#english) | [中文](#中文)
 
