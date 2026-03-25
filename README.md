@@ -24,12 +24,9 @@
 
 **FlowWheel** is a powerful Windows utility that brings smooth, browser-style "Middle-Click Auto-Scroll" to the entire operating system. It now features advanced productivity tools like **Inertia Scrolling**, **Multi-Screen Sync** and **Reading Mode**.
 
-### New in v1.5.5
-- **Smooth Theme Switching**: Added smooth transition animations when switching between Light and Dark themes.
-- **Custom Hotkeys**: Now you can customize your own global hotkeys for toggling auto-scroll.
-- **Custom Icons**: New icon options with improved visual design for the overlay.
-- **UI Enhancements**: Refined settings interface with better visual feedback and modern styling.
-- **Bug Fix**: Fixed a startup crash caused by incorrect type binding for `DropShadowEffect.Color` in theme resources.
+### New in v1.7.0
+- **Custom Acceleration Curve**: Users can now create and adjust custom acceleration curves by dragging control points. Supports multiple curve types including Linear, Exponential, Logarithmic, Sigmoid, and fully custom curves.
+- **Fixed Custom Curve Dragging**: Resolved the issue where custom curve control points could not be dragged to adjust the curve shape.
 
 ### Key Features
 
