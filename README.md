@@ -221,5 +221,5 @@ If you find this project helpful, feel free to buy me a coffee! ☕
 <div align="center">
  <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/alipay_qr.png" alt="Alipay" width="180" style="max-width: 100%; height: auto;" />
  <br>
- <span>(如果觉得不错，请使用支付宝扫码支持 / Scan to Donate with Alipay)</span>
+ <span>(如果觉得不错，请使用支付宝扫码支持，谢谢！ / Scan to Donate with Alipay)</span>
 </div>
