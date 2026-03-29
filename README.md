@@ -75,7 +75,7 @@
   - 指数：快速起步，渐变减速
   - 对数：慢速起步，快速加速
   - S形：带拐点的 S 曲线
-  - 自定义：用控制点绘制你自己的曲线
+  - 自定义（未实现）：用控制点绘制你自己的曲线
 - **应用配置**：为不同应用配置不同的滚动行为
 
 ### 智能特性
@@ -180,7 +180,7 @@ FlowWheel 基于 .NET 10 和 WPF 构建，采用清晰、模块化的架构：
 
 ### 快速安装
 
-#### 方法 1：Scoop（推荐给开发者）
+#### ~~方法 1：Scoop（推荐给开发者）~~
 
 ```powershell
 # 添加 bucket 并安装
@@ -386,5 +386,5 @@ FlowWheel 从设计之初就注重隐私：
 <div align="center">
  <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/alipay_qr.png" alt="Alipay" width="180" style="max-width: 100%; height: auto;" />
  <br>
- <span>扫码支持支付宝</span>
+ <span>扫码支持（支付宝）</span>
 </div>
