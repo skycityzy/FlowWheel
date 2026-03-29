@@ -10,7 +10,7 @@
 
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.7.0-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.7.1-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
 中文 | [English](./README.en.md)
 
@@ -40,8 +40,16 @@
 | 物理手感 | 无 | 惯性、抓取与抛掷 |
 | 自定义程度 | 有限 | 完全可定制曲线 |
 
-### v1.7.0 新功能
+### v1.7.1 新功能
 
+- **Scoop 支持**：现在可以通过 Scoop 轻松安装和更新 FlowWheel！
+  ```powershell
+  # 直接从 GitHub 安装
+  scoop install https://github.com/humanfirework/FlowWheel/raw/main/flowwheel.json
+  
+  # 更新到最新版本
+  scoop update flowwheel
+  ```
 - **自定义加速度曲线**：通过可视化曲线编辑器创建你的专属滚动手感。从线性、指数、对数、S形曲线中选择，或绘制完全自定义的曲线。
 - **修复自定义曲线拖拽**：改进了控制点操作，实现精确的曲线定制。
 
@@ -180,10 +188,10 @@ FlowWheel 基于 .NET 10 和 WPF 构建，采用清晰、模块化的架构：
 
 ### 快速安装
 
-#### ~~方法 1：Scoop（推荐给开发者）~~
+#### 方法 1：Scoop（推荐）
 
 ```powershell
-# 添加 bucket 并安装
+# 直接从 GitHub 安装
 scoop install https://github.com/humanfirework/FlowWheel/raw/main/flowwheel.json
 
 # 更新到最新版本

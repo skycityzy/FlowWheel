@@ -26,6 +26,7 @@ namespace FlowWheel.Core
         
         private double _currentSpeed = 0;
         private double _currentHSpeed = 0;
+        private const double MaxDistance = 500.0; // 归一化输入的最大距离阈值
         private NativeMethods.POINT _origin;
         private NativeMethods.POINT _current;
         private NativeMethods.POINT _lastPos;
@@ -62,6 +63,7 @@ namespace FlowWheel.Core
         public double ResponseTime { get; set; } = 0.04;
         public double AxisLockRatio { get; set; } = 1.8;
         public int SoftStartRange { get; set; } = 12;
+        public double MaxScrollSpeed { get; set; } = 1500.0;
         
         // 加速度曲线
         public AccelerationCurveType CurveType { get; set; } = AccelerationCurveType.Linear;
@@ -93,6 +95,7 @@ namespace FlowWheel.Core
             ResponseTime = config.ResponseTime;
             AxisLockRatio = config.AxisLockRatio;
             SoftStartRange = config.SoftStartRange;
+            MaxScrollSpeed = config.MaxScrollSpeed;
             
             CurveType = config.AccelerationCurve;
             ReadingModeSpeed = config.ReadingModeSpeed;
@@ -275,12 +278,11 @@ namespace FlowWheel.Core
             else
             {
                 double effective = distY - vDeadzone;
-                double maxDistance = 500.0;
-                double normalizedInput = Math.Min(effective / maxDistance, 1.0);
+                double normalizedInput = Math.Min(effective / MaxDistance, 1.0);
                 
                 double curveOutput = ApplyAccelerationCurve(normalizedInput);
                 
-                double rawSpeed = curveOutput * maxDistance * vSensitivity;
+                double rawSpeed = curveOutput * MaxScrollSpeed * vSensitivity;
                 
                 if (SoftStartRange > 0 && effective < SoftStartRange)
                 {
@@ -288,8 +290,6 @@ namespace FlowWheel.Core
                     t = t * t * (3.0 - 2.0 * t);
                     rawSpeed *= t;
                 }
-                
-                if (rawSpeed > 5000) rawSpeed = 5000;
 
                 if (dy > 0)
                 {
@@ -312,12 +312,11 @@ namespace FlowWheel.Core
             else
             {
                 double effective = distX - hDeadzone;
-                double maxDistance = 500.0;
-                double normalizedInput = Math.Min(effective / maxDistance, 1.0);
+                double normalizedInput = Math.Min(effective / MaxDistance, 1.0);
                 
                 double curveOutput = ApplyAccelerationCurve(normalizedInput);
                 
-                double rawHSpeed = curveOutput * maxDistance * hSensitivity;
+                double rawHSpeed = curveOutput * MaxScrollSpeed * hSensitivity;
                 
                 if (SoftStartRange > 0 && effective < SoftStartRange)
                 {
@@ -325,8 +324,6 @@ namespace FlowWheel.Core
                     t = t * t * (3.0 - 2.0 * t);
                     rawHSpeed *= t;
                 }
-                
-                if (rawHSpeed > 5000) rawHSpeed = 5000;
 
                 if (dx > 0)
                 {

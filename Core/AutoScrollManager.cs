@@ -192,13 +192,12 @@ namespace FlowWheel.Core
                             NativeMethods.POINT pt;
                             NativeMethods.GetCursorPos(out pt);
                             var (isBlocked, _) = _windowManager.CheckProcessState(pt);
-                            if (!isBlocked)
-                            {
-                                _engine.Sensitivity = ConfigManager.Current.Sensitivity;
-                                _engine.Deadzone = ConfigManager.Current.Deadzone;
-                                _isDragging = true;
-                                StartAutoScroll(pt);
-                            }
+                    if (!isBlocked)
+                    {
+                        _engine.ApplyConfig(ConfigManager.Current);
+                        _isDragging = true;
+                        StartAutoScroll(pt);
+                    }
                         }
                         else // Toggle Mode
                         {
@@ -328,12 +327,12 @@ namespace FlowWheel.Core
                     isTriggerUp = (e.Message == NativeMethods.WM_MBUTTONUP);
                     break;
                 case "XButton1":
-                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 1);
-                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 1);
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && e.MouseData == 1);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && e.MouseData == 1);
                     break;
                 case "XButton2":
-                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 2);
-                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 2);
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && e.MouseData == 2);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && e.MouseData == 2);
                     break;
                 // LeftMouse and RightMouse are not allowed as trigger keys
             }
