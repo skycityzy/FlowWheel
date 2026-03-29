@@ -254,6 +254,10 @@
                                     </StackPanel>
                                     <controls:ToggleSwitch x:Name="ReadingModeToggle" Grid.Column="1" Width="44" Height="24"/>
                                 </Grid>
+                                <TextBlock Text="💡 提示：双击鼠标中键激活阅读模式，再次双击或点击任意键退出" 
+                                           Style="{StaticResource SettingDescription}" 
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource Brush.Accent}"/>
                             </StackPanel>
                         </Border>
                         
@@ -268,6 +272,10 @@
                                 <RadioButton x:Name="RadioHoldDrag" GroupName="TriggerMode" 
                                              Content="{DynamicResource RadioHoldDrag}" 
                                              Style="{StaticResource SettingRadioStyle}"/>
+                                <TextBlock Text="💡 提示：在阅读模式下滚动鼠标滚轮可实时调整速度（仅在快捷键为中键时生效）" 
+                                           Style="{StaticResource SettingDescription}" 
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource Brush.Accent}"/>
                             </StackPanel>
                         </Border>
                         

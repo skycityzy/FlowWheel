@@ -302,6 +302,8 @@ namespace FlowWheel.Core
             if (!_isEnabled) return;
 
             // Handle Wheel for Reading Mode Speed Adjustment
+            // 阅读模式下滚动滚轮可以实时调整滚动速度
+            // 向上滚动滚轮 = 加速，向下滚动滚轮 = 减速
             if (e.Message == NativeMethods.WM_MOUSEWHEEL && _engine.CurrentState == ScrollState.ReadingMode)
             {
                 // MouseData is delta (e.g., 120)
@@ -353,8 +355,8 @@ namespace FlowWheel.Core
             if (isTriggerDown)
             {
                 // 1. Reading Mode Check (Always Double Click)
-                // Only for MiddleMouse without modifiers
-                if (_triggerBaseKey == "MiddleMouse" && !_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt 
+                // Works with any trigger key without modifiers
+                if (!_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt 
                     && ConfigManager.Current.IsReadingModeEnabled)
                 {
                     long now = DateTime.Now.Ticks;

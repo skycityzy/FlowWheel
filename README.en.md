@@ -51,6 +51,7 @@ Imagine reading a long article, scrolling through a code file, or reviewing a do
   ```
 - **Custom Acceleration Curve**: Create your own scroll feel with the visual curve editor. Choose from Linear, Exponential, Logarithmic, Sigmoid presets, or draw a fully custom curve.
 - **Fixed Custom Curve Dragging**: Improved control point manipulation for precise curve customization.
+- **Fixed Reading Mode Double-Click**: Now double-clicking the middle mouse button in reading mode will exit the mode instantly.
 
 ---
 
