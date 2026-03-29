@@ -16,7 +16,7 @@
 
 ---
 
-## English
+## [Introduction](./README.md)
 
 **FlowWheel** is a powerful Windows utility that brings smooth, browser-style "Middle-Click Auto-Scroll" to the entire operating system. It now features advanced productivity tools like **Inertia Scrolling**, **Multi-Screen Sync** and **Reading Mode**.
 
