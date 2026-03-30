@@ -96,6 +96,7 @@ namespace FlowWheel.Core
         public double ResponseTime { get; set; } = 0.04; // 响应时间
         public double AxisLockRatio { get; set; } = 1.8; // 轴锁定比例
         public int SoftStartRange { get; set; } = 12; // 软启动范围
+        public double MaxScrollSpeed { get; set; } = 1500.0; // 最大滚动速度 (px/s)
         public bool ShowAdvancedSettings { get; set; } = false; // 是否显示高级设置
         
         // Custom Icon Settings

@@ -86,7 +86,7 @@
     <s:String x:Key="CurveExponential">指数</s:String>
     <s:String x:Key="CurveLogarithmic">对数</s:String>
     <s:String x:Key="CurveSigmoid">S曲线</s:String>
-    <s:String x:Key="CurveCustom">自定义(未实现)</s:String>
+    <s:String x:Key="CurveCustom">自定义</s:String>
     <s:String x:Key="LabelExponent">指数值</s:String>
     <s:String x:Key="LabelLogBase">对数底数</s:String>
     <s:String x:Key="LabelSigmoidMidpoint">中点位置</s:String>
@@ -106,6 +106,8 @@
     <s:String x:Key="DescAxisLock">当某一方向移动距离超过另一方向此比例时，锁定另一方向</s:String>
     <s:String x:Key="LabelSoftStart">软启动范围</s:String>
     <s:String x:Key="DescSoftStart">在死区边缘的平滑过渡区域，避免突然启动</s:String>
+    <s:String x:Key="LabelMaxScrollSpeed">最大滚动速度</s:String>
+    <s:String x:Key="DescMaxScrollSpeed">拖拽滚动时的速度上限，值越大最大速度越快</s:String>
 
     <!-- Filtering -->
     <s:String x:Key="RadioBlacklist">黑名单 (屏蔽以下)</s:String>

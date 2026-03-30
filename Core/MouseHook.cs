@@ -88,6 +88,12 @@ namespace FlowWheel.Core
             {
                 mouseData = (short)((hookStruct.Value.mouseData >> 16) & 0xFFFF);
             }
+            else if (msg == NativeMethods.WM_XBUTTONDOWN || msg == NativeMethods.WM_XBUTTONUP)
+            {
+                // XButton identifier is stored in the high-order word of mouseData
+                // XButton1 = 1, XButton2 = 2
+                mouseData = (int)(hookStruct.Value.mouseData >> 16);
+            }
 
             var args = new MouseEventArgs(msg, hookStruct.Value.pt, mouseData);
             MouseEvent?.Invoke(this, args);

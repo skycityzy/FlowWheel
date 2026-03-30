@@ -20,7 +20,8 @@ namespace FlowWheel.UI.Controls
         private Ellipse? _draggingEllipse = null;
         private int _draggingCurveIndex = -1;
         private bool _isLoaded = false;
-        private const double PointHitRadius = 14;
+        private bool _themeChangeHandlerAdded = false;
+        private const double PointHitRadius = 18;
         private const double AxisMarginLeft = 28;
         private const double AxisMarginBottom = 22;
         private const double AxisMarginTop = 6;
@@ -67,11 +68,13 @@ namespace FlowWheel.UI.Controls
         public CurveEditor()
         {
             Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        public override void OnApplyTemplate()
         {
+            base.OnApplyTemplate();
             _canvas = GetTemplateChild("PART_Canvas") as Canvas;
             if (_canvas != null)
             {
@@ -80,10 +83,19 @@ namespace FlowWheel.UI.Controls
                 _canvas.MouseLeftButtonUp += OnCanvasLeftButtonUp;
                 _canvas.MouseRightButtonDown += OnCanvasRightButtonDown;
             }
-
             _curvePath = GetTemplateChild("PART_CurvePath") as Path;
+        }
 
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
             _isLoaded = true;
+
+            // Subscribe to theme changes
+            if (!_themeChangeHandlerAdded)
+            {
+                SystemParameters.StaticPropertyChanged += OnSystemPropertyChanged;
+                _themeChangeHandlerAdded = true;
+            }
 
             if (CurvePoints == null || CurvePoints.Count < 2)
             {
@@ -94,8 +106,28 @@ namespace FlowWheel.UI.Controls
                 };
             }
 
-            Dispatcher.BeginInvoke(new Action(UpdateCurve),
-                System.Windows.Threading.DispatcherPriority.Loaded);
+            // 延迟重绘，确保控件有实际尺寸
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                UpdateCurve();
+            }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (_themeChangeHandlerAdded)
+            {
+                SystemParameters.StaticPropertyChanged -= OnSystemPropertyChanged;
+                _themeChangeHandlerAdded = false;
+            }
+        }
+
+        private void OnSystemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SystemParameters.HighContrast))
+            {
+                UpdateCurve();
+            }
         }
 
         private void OnEllipseMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -246,10 +278,12 @@ namespace FlowWheel.UI.Controls
 
             var (pw, ph) = GetPlotSize();
 
-            var gridBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(35, 128, 128, 128));
-            var axisBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(90, 128, 128, 128));
-            var labelBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(120, 128, 128, 128));
-            var diagBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 128, 128, 128));
+            // Use dynamic resource brushes for theme support
+            var gridBrush = GetGridBrush();
+            var axisBrush = GetAxisBrush();
+            var labelBrush = GetLabelBrush();
+            // Diagonal reference - medium gray dashed
+            var diagBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(150, 150, 150, 150));
 
             for (int i = 0; i <= 10; i++)
             {
@@ -406,15 +440,16 @@ namespace FlowWheel.UI.Controls
                 var (ex, ey) = ToCanvas(sorted[si].X, sorted[si].Y);
 
                 bool isEndpoint = (si == 0 || si == sorted.Count - 1);
-                double r = isEndpoint ? 6 : 5;
-                var fill = isEndpoint ? GetAccentColor() : System.Windows.Media.Colors.White;
-                var strokeC = GetAccentColor();
+                double r = isEndpoint ? 8 : 6;
+                var accentColor = GetAccentColor();
+                var fillColor = isEndpoint ? accentColor : GetPointFillColor();
+                var strokeC = accentColor;
 
                 var ellipse = new Ellipse
                 {
                     Width = r * 2,
                     Height = r * 2,
-                    Fill = new SolidColorBrush(fill),
+                    Fill = new SolidColorBrush(fillColor),
                     Stroke = new SolidColorBrush(strokeC),
                     StrokeThickness = 2,
                     Cursor = System.Windows.Input.Cursors.Hand,
@@ -610,10 +645,39 @@ namespace FlowWheel.UI.Controls
 
         private System.Windows.Media.Color GetAccentColor()
         {
-            if (System.Windows.Application.Current.TryFindResource("Color.Accent")
-                is System.Windows.Media.Color color)
-                return color;
-            return System.Windows.Media.Color.FromRgb(0, 120, 215);
+            // Try to get curve line color from dynamic resource
+            if (TryFindResource("Brush.Curve.Line") is SolidColorBrush brush)
+                return brush.Color;
+            // Fallback to a visible blue color
+            return System.Windows.Media.Color.FromRgb(0, 120, 212);
+        }
+
+        private System.Windows.Media.Brush GetGridBrush()
+        {
+            if (TryFindResource("CurveEditorGridBrush") is System.Windows.Media.Brush brush)
+                return brush;
+            return new SolidColorBrush(System.Windows.Media.Color.FromArgb(60, 180, 180, 180));
+        }
+
+        private System.Windows.Media.Brush GetAxisBrush()
+        {
+            if (TryFindResource("CurveEditorAxisBrush") is System.Windows.Media.Brush brush)
+                return brush;
+            return new SolidColorBrush(System.Windows.Media.Color.FromRgb(100, 100, 100));
+        }
+
+        private System.Windows.Media.Brush GetLabelBrush()
+        {
+            if (TryFindResource("CurveEditorLabelBrush") is System.Windows.Media.Brush brush)
+                return brush;
+            return new SolidColorBrush(System.Windows.Media.Color.FromRgb(80, 80, 80));
+        }
+
+        private System.Windows.Media.Color GetPointFillColor()
+        {
+            if (TryFindResource("Brush.Curve.PointFill") is SolidColorBrush brush)
+                return brush.Color;
+            return System.Windows.Media.Colors.White;
         }
     }
 }

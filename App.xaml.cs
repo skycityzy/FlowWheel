@@ -186,25 +186,38 @@ namespace FlowWheel
             }
         }
 
+        private bool _isDisposed = false;
+
         private void ExitApp()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             if (_notifyIcon != null)
             {
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
+                _notifyIcon = null;
             }
-            _autoScrollManager?.Dispose(); // Disposes hook and overlay
+            _autoScrollManager?.Dispose();
+            _autoScrollManager = null;
             _mouseHook?.Dispose();
+            _mouseHook = null;
             _keyboardHook?.Dispose();
+            _keyboardHook = null;
             Shutdown();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            _notifyIcon?.Dispose();
-            _autoScrollManager?.Dispose();
-            _mouseHook?.Dispose();
-            _keyboardHook?.Dispose();
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+                _notifyIcon?.Dispose();
+                _autoScrollManager?.Dispose();
+                _mouseHook?.Dispose();
+                _keyboardHook?.Dispose();
+            }
             base.OnExit(e);
         }
     }

@@ -85,7 +85,17 @@ namespace FlowWheel.UI
                 CurveEditorControl.CurveType = ConfigManager.Current.AccelerationCurve;
                 CurveEditorControl.Config = ConfigManager.Current;
             }
-            
+
+            if (CurvePreviewControl != null)
+            {
+                CurvePreviewControl.CurveType = ConfigManager.Current.AccelerationCurve;
+                CurvePreviewControl.Exponent = ConfigManager.Current.AccelerationExponent;
+                CurvePreviewControl.LogBase = ConfigManager.Current.AccelerationLogBase;
+                CurvePreviewControl.SigmoidMidpoint = ConfigManager.Current.SigmoidMidpoint;
+                CurvePreviewControl.SigmoidSteepness = ConfigManager.Current.SigmoidSteepness;
+                CurvePreviewControl.CustomPoints = ConfigManager.Current.CustomCurvePoints;
+            }
+
             // 高级参数设置
             AdvancedSettingsToggle.IsOn = ConfigManager.Current.ShowAdvancedSettings;
             FrictionSlider.Value = ConfigManager.Current.Friction;
@@ -93,8 +103,14 @@ namespace FlowWheel.UI
             ResponseTimeSlider.Value = ConfigManager.Current.ResponseTime * 1000;
             AxisLockSlider.Value = ConfigManager.Current.AxisLockRatio;
             SoftStartSlider.Value = ConfigManager.Current.SoftStartRange;
+            MaxScrollSpeedSlider.Value = ConfigManager.Current.MaxScrollSpeed;
             UpdateAdvancedParamsVisibility();
             UpdateCurveParamsVisibility();
+            
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RefreshCurveControls();
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
             
             EnableToggle.IsOn = ConfigManager.Current.IsEnabled;
             StartupToggle.IsOn = ConfigManager.Current.StartupEnabled;
@@ -564,6 +580,8 @@ namespace FlowWheel.UI
                 _isDarkMode = newIsDark;
                 // Update decoration visibility
                 UpdateDecorationVisibility(newIsDark, true);
+                // Refresh curve controls
+                RefreshCurveControls();
             };
             timer.Start();
 
@@ -1049,8 +1067,8 @@ namespace FlowWheel.UI
                     keyName = "MiddleMouse";
                     break;
                 case NativeMethods.WM_XBUTTONDOWN:
-                    // XButton1 or XButton2
-                    int xButton = (e.MouseData >> 16);
+                    // XButton1 or XButton2 (MouseData already contains the XButton identifier)
+                    int xButton = e.MouseData;
                     if (xButton == 1)
                         keyName = "XButton1";
                     else if (xButton == 2)
@@ -1255,7 +1273,13 @@ namespace FlowWheel.UI
                         CurveEditorControl.CurvePoints = ConfigManager.Current.CustomCurvePoints;
                         CurveEditorControl.Config = ConfigManager.Current;
                     }
-                    
+
+                    if (CurvePreviewControl != null)
+                    {
+                        CurvePreviewControl.CurveType = curveType;
+                        CurvePreviewControl.CustomPoints = ConfigManager.Current.CustomCurvePoints;
+                    }
+
                     UpdateCurveParamsVisibility();
                     ConfigManager.Save();
                 }
@@ -1269,6 +1293,12 @@ namespace FlowWheel.UI
             LogarithmicParamsPanel.Visibility = curveType == AccelerationCurveType.Logarithmic ? Visibility.Visible : Visibility.Collapsed;
             SigmoidParamsPanel.Visibility = curveType == AccelerationCurveType.Sigmoid ? Visibility.Visible : Visibility.Collapsed;
             CustomCurvePanel.Visibility = curveType == AccelerationCurveType.Custom ? Visibility.Visible : Visibility.Collapsed;
+
+            // Custom curve mode has its own interactive CurveEditor, hide the preview
+            if (CurvePreviewControl != null)
+            {
+                CurvePreviewControl.Visibility = curveType == AccelerationCurveType.Custom ? Visibility.Collapsed : Visibility.Visible;
+            }
         }
         
         private void ExponentSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1276,38 +1306,43 @@ namespace FlowWheel.UI
             double value = e.NewValue;
             ConfigManager.Current.AccelerationExponent = value;
             if (ExponentValueText != null) ExponentValueText.Text = $"{value:F1}";
+            if (CurvePreviewControl != null) CurvePreviewControl.Exponent = value;
             ConfigManager.Save();
         }
-        
+
         private void LogBaseSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             double value = e.NewValue;
             ConfigManager.Current.AccelerationLogBase = value;
             if (LogBaseValueText != null) LogBaseValueText.Text = $"{value:F1}";
+            if (CurvePreviewControl != null) CurvePreviewControl.LogBase = value;
             ConfigManager.Save();
         }
-        
+
         private void SigmoidMidpointSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             double value = e.NewValue;
             ConfigManager.Current.SigmoidMidpoint = value;
             if (SigmoidMidpointValueText != null) SigmoidMidpointValueText.Text = $"{value:F2}";
+            if (CurvePreviewControl != null) CurvePreviewControl.SigmoidMidpoint = value;
             ConfigManager.Save();
         }
-        
+
         private void SigmoidSteepnessSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             double value = e.NewValue;
             ConfigManager.Current.SigmoidSteepness = value;
             if (SigmoidSteepnessValueText != null) SigmoidSteepnessValueText.Text = $"{value:F1}";
+            if (CurvePreviewControl != null) CurvePreviewControl.SigmoidSteepness = value;
             ConfigManager.Save();
         }
-        
+
         private void CurveEditorControl_CurveChanged(object sender, EventArgs e)
         {
             if (CurveEditorControl?.CurvePoints != null)
             {
                 ConfigManager.Current.CustomCurvePoints = CurveEditorControl.CurvePoints;
+                if (CurvePreviewControl != null) CurvePreviewControl.CustomPoints = CurveEditorControl.CurvePoints;
                 ConfigManager.Save();
             }
         }
@@ -1359,6 +1394,15 @@ namespace FlowWheel.UI
             ConfigManager.Current.SoftStartRange = value;
             if (_engine != null) _engine.SoftStartRange = value;
             if (SoftStartValueText != null) SoftStartValueText.Text = $"{value}px";
+            ConfigManager.Save();
+        }
+
+        private void MaxScrollSpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            double value = e.NewValue;
+            ConfigManager.Current.MaxScrollSpeed = value;
+            if (_engine != null) _engine.MaxScrollSpeed = value;
+            if (MaxScrollSpeedValueText != null) MaxScrollSpeedValueText.Text = $"{(int)value} px/s";
             ConfigManager.Save();
         }
 
@@ -1451,6 +1495,28 @@ namespace FlowWheel.UI
         {
             if (string.IsNullOrEmpty(s) || s.Length <= max) return s;
             return s.Substring(0, max) + "\n...(truncated)";
+        }
+
+        private void RefreshCurveControls()
+        {
+            if (CurveEditorControl != null)
+            {
+                CurveEditorControl.CurveType = ConfigManager.Current.AccelerationCurve;
+                CurveEditorControl.CurvePoints = ConfigManager.Current.CustomCurvePoints;
+                CurveEditorControl.Config = ConfigManager.Current;
+                CurveEditorControl.InvalidateVisual();
+            }
+
+            if (CurvePreviewControl != null)
+            {
+                CurvePreviewControl.CurveType = ConfigManager.Current.AccelerationCurve;
+                CurvePreviewControl.CustomPoints = ConfigManager.Current.CustomCurvePoints;
+                CurvePreviewControl.Exponent = ConfigManager.Current.AccelerationExponent;
+                CurvePreviewControl.LogBase = ConfigManager.Current.AccelerationLogBase;
+                CurvePreviewControl.SigmoidMidpoint = ConfigManager.Current.SigmoidMidpoint;
+                CurvePreviewControl.SigmoidSteepness = ConfigManager.Current.SigmoidSteepness;
+                CurvePreviewControl.InvalidateVisual();
+            }
         }
 
         private void SetStartup(bool enable)

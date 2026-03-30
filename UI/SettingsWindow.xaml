@@ -254,6 +254,10 @@
                                     </StackPanel>
                                     <controls:ToggleSwitch x:Name="ReadingModeToggle" Grid.Column="1" Width="44" Height="24"/>
                                 </Grid>
+                                <TextBlock Text="💡 提示：双击鼠标中键激活阅读模式，再次双击或点击任意键退出" 
+                                           Style="{StaticResource SettingDescription}" 
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource Brush.Accent}"/>
                             </StackPanel>
                         </Border>
                         
@@ -268,6 +272,10 @@
                                 <RadioButton x:Name="RadioHoldDrag" GroupName="TriggerMode" 
                                              Content="{DynamicResource RadioHoldDrag}" 
                                              Style="{StaticResource SettingRadioStyle}"/>
+                                <TextBlock Text="💡 提示：在阅读模式下滚动鼠标滚轮可实时调整速度（仅在快捷键为中键时生效）" 
+                                           Style="{StaticResource SettingDescription}" 
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource Brush.Accent}"/>
                             </StackPanel>
                         </Border>
                         
@@ -394,7 +402,11 @@
                                         <ComboBoxItem Content="{DynamicResource CurveCustom}" Tag="Custom"/>
                                     </ComboBox>
                                 </Grid>
-                                
+
+                                <controls:CurvePreview x:Name="CurvePreviewControl" Margin="0,10,0,0"
+                                                      Width="280" Height="180"
+                                                      Visibility="Visible"/>
+
                                 <StackPanel x:Name="ExponentialParamsPanel" Visibility="Collapsed" Margin="0,8,0,0">
                                     <Grid Style="{StaticResource SettingRow}">
                                         <Grid.ColumnDefinitions>
@@ -455,9 +467,9 @@
                                 
                                 <StackPanel x:Name="CustomCurvePanel" Visibility="Collapsed" Margin="0,8,0,0">
                                     <TextBlock Text="{DynamicResource DescCustomCurve}" Style="{StaticResource SettingDescription}" Margin="0,0,0,8"/>
-                                    <controls:CurveEditor x:Name="CurveEditorControl" Width="280" Height="180" 
+                                    <controls:CurveEditor x:Name="CurveEditorControl" Width="280" Height="180"
                                                           CurveChanged="CurveEditorControl_CurveChanged"/>
-                                    <Button Content="{DynamicResource BtnResetCurve}" Style="{StaticResource ModernButton}" 
+                                    <Button Content="{DynamicResource BtnResetCurve}" Style="{StaticResource ModernButton}"
                                             Margin="0,8,0,0" Click="ResetCurve_Click"/>
                                 </StackPanel>
                             </StackPanel>
@@ -554,6 +566,22 @@
                                     <Slider x:Name="SoftStartSlider" Minimum="0" Maximum="50" Value="12" 
                                             TickFrequency="1" IsSnapToTickEnabled="True" 
                                             ValueChanged="SoftStartSlider_ValueChanged"/>
+
+                                    <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{DynamicResource LabelMaxScrollSpeed}" Style="{StaticResource SettingLabel}"/>
+                                            <TextBlock Text="{DynamicResource DescMaxScrollSpeed}" Style="{StaticResource SettingDescription}"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="MaxScrollSpeedValueText" Text="1500 px/s" Grid.Column="1" 
+                                                   Style="{StaticResource SettingLabel}" Foreground="{DynamicResource Brush.Accent}"/>
+                                    </Grid>
+                                    <Slider x:Name="MaxScrollSpeedSlider" Minimum="500" Maximum="2000" Value="1500" 
+                                            TickFrequency="100" IsSnapToTickEnabled="True" 
+                                            ValueChanged="MaxScrollSpeedSlider_ValueChanged"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

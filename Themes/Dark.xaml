@@ -16,4 +16,14 @@
     <SolidColorBrush x:Key="Brush.Input.Background" Color="#1E1E2E"/>
     <SolidColorBrush x:Key="Brush.ListBox.Item.Hover" Color="#2A2A3E"/>
     <SolidColorBrush x:Key="Brush.ListBox.Item.Selected" Color="#353555"/>
+    
+    <!-- Curve Control Colors -->
+    <SolidColorBrush x:Key="Brush.Curve.Background" Color="#1E1E2E"/>
+    <SolidColorBrush x:Key="Brush.Curve.Grid" Color="#3A3A4A"/>
+    <SolidColorBrush x:Key="Brush.Curve.Axis" Color="#808090"/>
+    <SolidColorBrush x:Key="Brush.Curve.Label" Color="#A0A0B0"/>
+    <SolidColorBrush x:Key="Brush.Curve.Diagonal" Color="#505060"/>
+    <SolidColorBrush x:Key="Brush.Curve.Line" Color="#4DA6FF"/>
+    <SolidColorBrush x:Key="Brush.Curve.Point" Color="#4DA6FF"/>
+    <SolidColorBrush x:Key="Brush.Curve.PointFill" Color="#1E1E2E"/>
 </ResourceDictionary>

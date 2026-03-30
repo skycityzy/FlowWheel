@@ -192,13 +192,12 @@ namespace FlowWheel.Core
                             NativeMethods.POINT pt;
                             NativeMethods.GetCursorPos(out pt);
                             var (isBlocked, _) = _windowManager.CheckProcessState(pt);
-                            if (!isBlocked)
-                            {
-                                _engine.Sensitivity = ConfigManager.Current.Sensitivity;
-                                _engine.Deadzone = ConfigManager.Current.Deadzone;
-                                _isDragging = true;
-                                StartAutoScroll(pt);
-                            }
+                    if (!isBlocked)
+                    {
+                        _engine.ApplyConfig(ConfigManager.Current);
+                        _isDragging = true;
+                        StartAutoScroll(pt);
+                    }
                         }
                         else // Toggle Mode
                         {
@@ -303,6 +302,8 @@ namespace FlowWheel.Core
             if (!_isEnabled) return;
 
             // Handle Wheel for Reading Mode Speed Adjustment
+            // 阅读模式下滚动滚轮可以实时调整滚动速度
+            // 向上滚动滚轮 = 加速，向下滚动滚轮 = 减速
             if (e.Message == NativeMethods.WM_MOUSEWHEEL && _engine.CurrentState == ScrollState.ReadingMode)
             {
                 // MouseData is delta (e.g., 120)
@@ -328,12 +329,12 @@ namespace FlowWheel.Core
                     isTriggerUp = (e.Message == NativeMethods.WM_MBUTTONUP);
                     break;
                 case "XButton1":
-                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 1);
-                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 1);
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && e.MouseData == 1);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && e.MouseData == 1);
                     break;
                 case "XButton2":
-                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && (e.MouseData >> 16) == 2);
-                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && (e.MouseData >> 16) == 2);
+                    isTriggerDown = (e.Message == NativeMethods.WM_XBUTTONDOWN && e.MouseData == 2);
+                    isTriggerUp = (e.Message == NativeMethods.WM_XBUTTONUP && e.MouseData == 2);
                     break;
                 // LeftMouse and RightMouse are not allowed as trigger keys
             }
@@ -354,8 +355,8 @@ namespace FlowWheel.Core
             if (isTriggerDown)
             {
                 // 1. Reading Mode Check (Always Double Click)
-                // Only for MiddleMouse without modifiers
-                if (_triggerBaseKey == "MiddleMouse" && !_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt 
+                // Works with any trigger key without modifiers
+                if (!_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt 
                     && ConfigManager.Current.IsReadingModeEnabled)
                 {
                     long now = DateTime.Now.Ticks;
