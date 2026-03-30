@@ -10,7 +10,7 @@
 
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.7.1-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.7.2-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
 [中文](./README.md) | English
 
@@ -40,7 +40,7 @@ Imagine reading a long article, scrolling through a code file, or reviewing a do
 | Physics Feel | None | Inertia, grab & throw |
 | Customization | Limited | Fully customizable curves |
 
-### New in v1.7.1
+### New in v1.7.2
 - **Scoop Support**: Now you can easily install and update FlowWheel via Scoop!
   ```powershell
   # Install directly from GitHub

@@ -10,7 +10,7 @@
 
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.7.1-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.7.2-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
 中文 | [English](./README.en.md)
 
@@ -40,7 +40,7 @@
 | 物理手感 | 无 | 惯性、抓取与抛掷 |
 | 自定义程度 | 有限 | 完全可定制曲线 |
 
-### v1.7.1 新功能
+### v1.7.2 新功能
 
 - **Scoop 支持**：现在可以通过 Scoop 轻松安装和更新 FlowWheel！
   ```powershell
