@@ -1,0 +1,75 @@
+<Window x:Class="FlowWheel.UI.SplashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FlowWheel" Height="300" Width="500"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" ResizeMode="NoResize"
+        AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False">
+    
+    <Window.Resources>
+        <CubicEase x:Key="SplashSpinEase" EasingMode="EaseInOut"/>
+    </Window.Resources>
+    
+    <Border Background="White" CornerRadius="12" BorderBrush="#E0E0E0" BorderThickness="1" x:Name="RootBorder">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.2"/>
+        </Border.Effect>
+        <Grid>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <!-- Logo - FlowWheel scroll wheel icon with animation -->
+                <Grid Width="64" Height="64" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <!-- Outer glow -->
+                    <Ellipse Width="64" Height="64" Opacity="0.15">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#007ACC" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <!-- Brand icon -->
+                    <Path Data="M12,2 C6.48,2 2,6.48 2,12 C2,17.52 6.48,22 12,22 C17.52,22 22,17.52 22,12 C22,6.48 17.52,2 12,2 Z M12,6 C15.31,6 18,8.69 18,12 C18,15.31 15.31,18 12,18 C8.69,18 6,15.31 6,12 C6,8.69 8.69,6 12,6 Z M11,9 L11,7 L13,7 L13,9 Z M11,17 L11,15 L13,15 L13,17 Z M9,11 L7,11 L7,13 L9,13 Z M17,11 L15,11 L15,13 L17,13 Z" 
+                          Stroke="#007ACC" StrokeThickness="1.2" Fill="#007ACC" Opacity="0.85"
+                          Width="48" Height="48" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Path.Effect>
+                            <DropShadowEffect Color="#007ACC" BlurRadius="12" ShadowDepth="0" Opacity="0.4"/>
+                        </Path.Effect>
+                        <Path.RenderTransform>
+                            <RotateTransform x:Name="LogoRotate" CenterX="24" CenterY="24"/>
+                        </Path.RenderTransform>
+                        <Path.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="LogoRotate" 
+                                                         Storyboard.TargetProperty="Angle"
+                                                         From="0" To="360" Duration="0:0:8"
+                                                         EasingFunction="{StaticResource SplashSpinEase}"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Path.Triggers>
+                    </Path>
+                </Grid>
+                
+                <TextBlock Text="FlowWheel" FontSize="32" FontWeight="Bold" Foreground="#333" HorizontalAlignment="Center"/>
+                <TextBlock Text="Global Auto-Scroll Utility" FontSize="14" Foreground="#666" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                
+                <!-- Modern progress bar with rounded corners -->
+                <Grid Width="200" Height="6" Margin="0,30,0,0">
+                    <Border Background="#F0F0F0" CornerRadius="3"/>
+                    <Border x:Name="ProgressFill" Background="#007ACC" CornerRadius="3" HorizontalAlignment="Left" Width="0">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#007ACC" BlurRadius="4" ShadowDepth="0" Opacity="0.3"/>
+                        </Border.Effect>
+                    </Border>
+                </Grid>
+                
+                <TextBlock x:Name="StatusText" Text="Initializing..." FontSize="12" Foreground="#999" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+            </StackPanel>
+            
+            <TextBlock x:Name="VersionText" Text="" FontSize="10" Foreground="#CCC" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,15,10"/>
+        </Grid>
+    </Border>
+</Window>
