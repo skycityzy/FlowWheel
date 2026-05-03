@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FlowWheel.Core
 {
@@ -55,9 +56,31 @@ namespace FlowWheel.Core
 
         // Input constants
         public const int INPUT_MOUSE = 0;
+        public const int PROCESS_QUERY_INFORMATION = 0x0400;
+        public const int PROCESS_VM_READ = 0x0010;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool QueryFullProcessImageName(
+            IntPtr hProcess,
+            uint dwFlags,
+            StringBuilder lpExeName,
+            ref uint lpdwSize);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(
+            uint dwDesiredAccess,
+            [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle,
+            uint dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool CloseHandle(IntPtr hObject);
         public const int MOUSEEVENTF_WHEEL = 0x0800;
         public const int MOUSEEVENTF_HWHEEL = 0x1000;
         public const int MOUSEEVENTF_ABSOLUTE = 0x8000;
+        public const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        public const int MOUSEEVENTF_MIDDLEUP = 0x0040;
 
         // Structs
         [StructLayout(LayoutKind.Sequential)]

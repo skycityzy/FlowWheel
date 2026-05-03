@@ -9,11 +9,9 @@ namespace FlowWheel.Core
     public class WindowManager
     {
         private readonly Dictionary<string, AppProfile> _appProfiles;
-        
-        // Simple cache to avoid repeated Process lookups
-        // PID -> ProcessName
-        private readonly Dictionary<uint, string> _processCache = new Dictionary<uint, string>();
-        private readonly Dictionary<uint, DateTime> _cacheTime = new Dictionary<uint, DateTime>();
+
+        private readonly Dictionary<uint, (string name, DateTime timestamp)> _pidCache = new();
+        private readonly object _cacheLock = new();
 
         public WindowManager()
         {
@@ -101,35 +99,54 @@ namespace FlowWheel.Core
             return CheckProcessState(pt).isBlocked;
         }
 
-        private string? GetProcessName(uint pid)
+        private string GetProcessName(uint pid)
         {
-            // Check cache (valid for 5 seconds to handle PID reuse reasonably well without thrashing)
-            if (_processCache.TryGetValue(pid, out string? cachedName))
+            lock (_cacheLock)
             {
-                if ((DateTime.Now - _cacheTime[pid]).TotalSeconds < 5)
+                if (_pidCache.TryGetValue(pid, out var entry))
                 {
-                    return cachedName;
+                    if ((DateTime.Now - entry.timestamp).TotalSeconds < 5)
+                        return entry.name.TrimEnd('.', 'e', 'x', 'E', 'X');
+                    _pidCache.Remove(pid);
                 }
             }
 
+            string name = "";
+            IntPtr hProcess = IntPtr.Zero;
             try
             {
-                // Note: Process.GetProcessById is somewhat heavy. 
-                // For a high-performance production app, we might use QueryFullProcessImageName via P/Invoke.
-                // But for now, this is sufficient.
-                using (var process = Process.GetProcessById((int)pid))
+                hProcess = NativeMethods.OpenProcess(
+                    NativeMethods.PROCESS_QUERY_INFORMATION | NativeMethods.PROCESS_VM_READ,
+                    false, pid);
+                if (hProcess != IntPtr.Zero)
                 {
-                    string name = process.ProcessName;
-                    _processCache[pid] = name;
-                    _cacheTime[pid] = DateTime.Now;
-                    return name;
+                    var sb = new System.Text.StringBuilder(512);
+                    uint size = (uint)sb.Capacity;
+                    if (NativeMethods.QueryFullProcessImageName(hProcess, 0, sb, ref size))
+                    {
+                        name = System.IO.Path.GetFileNameWithoutExtension(sb.ToString());
+                    }
                 }
             }
             catch
             {
-                // Process might have exited or access denied
-                return null;
+                name = "";
             }
+            finally
+            {
+                if (hProcess != IntPtr.Zero)
+                    NativeMethods.CloseHandle(hProcess);
+            }
+
+            if (string.IsNullOrEmpty(name))
+                name = "unknown";
+
+            lock (_cacheLock)
+            {
+                _pidCache[pid] = (name, DateTime.Now);
+            }
+
+            return name;
         }
     }
 }

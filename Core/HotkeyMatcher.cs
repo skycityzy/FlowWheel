@@ -1,11 +1,8 @@
 using System;
+using System.Collections.Generic;
 
 namespace FlowWheel.Core
 {
-    /// <summary>
-    /// Caches parsed hotkey components and matches against keyboard events.
-    /// Eliminates duplicated hotkey parsing/matching logic between Toggle and ReadingMode hotkeys.
-    /// </summary>
     internal class HotkeyMatcher
     {
         private string _lastParsedHotkey = "";
@@ -14,10 +11,36 @@ namespace FlowWheel.Core
         private bool _needsAlt = false;
         private int _vkCode = 0;
 
-        /// <summary>
-        /// Check if the given vkCode with current modifier state matches the specified hotkey string.
-        /// Only re-parses when the hotkey string changes.
-        /// </summary>
+        private static readonly HashSet<string> _modifierKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Ctrl", "Control", "Alt", "Shift", "Win", "Windows", "LWin", "RWin"
+        };
+
+        private static readonly HashSet<string> _mouseKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "MiddleMouse", "Middle", "XButton1", "XButton2"
+        };
+
+        public static string NormalizeKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return "";
+            var parts = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var p in key.Split('+'))
+            {
+                var part = p.Trim();
+                if (string.IsNullOrEmpty(part)) continue;
+                parts.Add(part);
+            }
+            return string.Join("+", parts);
+        }
+
+        public static bool AreKeysEqual(string key1, string key2)
+        {
+            if (string.IsNullOrWhiteSpace(key1) && string.IsNullOrWhiteSpace(key2)) return true;
+            if (string.IsNullOrWhiteSpace(key1) || string.IsNullOrWhiteSpace(key2)) return false;
+            return string.Equals(NormalizeKey(key1), NormalizeKey(key2), StringComparison.OrdinalIgnoreCase);
+        }
+
         public bool IsMatch(int vkCode, string hotkey)
         {
             if (string.IsNullOrEmpty(hotkey)) return false;

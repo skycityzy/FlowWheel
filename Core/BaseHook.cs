@@ -9,6 +9,8 @@ namespace FlowWheel.Core
     {
         private IntPtr _hookId = IntPtr.Zero;
         private bool _disposed = false;
+        private static IntPtr _cachedModuleHandle = IntPtr.Zero;
+        private static readonly object _moduleLock = new object();
 
         protected BaseHook()
         {
@@ -44,21 +46,31 @@ namespace FlowWheel.Core
         /// </summary>
         protected static IntPtr GetModuleHandle()
         {
-            using Process curProcess = Process.GetCurrentProcess();
-            using ProcessModule? curModule = curProcess.MainModule;
-            
-            IntPtr moduleHandle = IntPtr.Zero;
-            if (curModule != null)
-            {
-                moduleHandle = NativeMethods.GetModuleHandle(curModule.ModuleName);
-            }
-            
-            if (moduleHandle == IntPtr.Zero)
-            {
-                moduleHandle = NativeMethods.GetModuleHandle(null);
-            }
+            if (_cachedModuleHandle != IntPtr.Zero)
+                return _cachedModuleHandle;
 
-            return moduleHandle;
+            lock (_moduleLock)
+            {
+                if (_cachedModuleHandle != IntPtr.Zero)
+                    return _cachedModuleHandle;
+
+                using Process curProcess = Process.GetCurrentProcess();
+                using ProcessModule? curModule = curProcess.MainModule;
+                
+                IntPtr moduleHandle = IntPtr.Zero;
+                if (curModule != null)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(curModule.ModuleName);
+                }
+                
+                if (moduleHandle == IntPtr.Zero)
+                {
+                    moduleHandle = NativeMethods.GetModuleHandle(null);
+                }
+
+                _cachedModuleHandle = moduleHandle;
+                return moduleHandle;
+            }
         }
 
         public void Dispose()

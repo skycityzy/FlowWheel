@@ -247,39 +247,42 @@ namespace FlowWheel.UI
 
         public void ShowAnchor(double x, double y)
         {
-            // Apply current config size and custom icon
             ApplyIconSize(ConfigManager.Current.IconSize);
             LoadCustomIcon();
-            
+
             Canvas.SetLeft(Anchor, x - Anchor.Width / 2);
             Canvas.SetTop(Anchor, y - Anchor.Height / 2);
             Anchor.Visibility = Visibility.Visible;
-            
-            // Reset
+
+            Anchor.Opacity = 0;
             WheelIndicatorCanvas.Opacity = 1.0;
-            if (CustomAnchorImage.Visibility == Visibility.Visible) 
+            if (CustomAnchorImage.Visibility == Visibility.Visible)
                 CustomAnchorImage.Opacity = 1.0;
-            
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(280))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            fadeIn.Completed += (s, e) => Anchor.Opacity = 1;
+            Anchor.BeginAnimation(OpacityProperty, fadeIn);
+
             ReadingIcon.Visibility = Visibility.Collapsed;
             OuterRing.Visibility = Visibility.Visible;
             SpinningWheel.Visibility = Visibility.Visible;
-            
-            // Reset arrows
+
             ArrowUp.Visibility = Visibility.Collapsed;
             ArrowDown.Visibility = Visibility.Collapsed;
             ArrowLeft.Visibility = Visibility.Collapsed;
             ArrowRight.Visibility = Visibility.Collapsed;
 
-            // Start subtle idle spin (only if using default wheel, not custom image)
             if (WheelIndicatorCanvas.Visibility == Visibility.Visible)
             {
-                _rotationSpeed = 30; // Slow idle rotation
+                _rotationSpeed = 30;
                 _isSpinning = true;
                 _lastAnimationTime = DateTime.Now;
                 _animationTimer.Start();
             }
 
-            // Enable breathing animation on idle
             SetBreathingActive(true);
 
             SetBreakSpeedIndicator(ConfigManager.Current.BreakSpeedLimit);
@@ -418,8 +421,17 @@ namespace FlowWheel.UI
             _isSpinning = false;
             _animationTimer.Stop();
             SetBreathingActive(false);
-            Anchor.Visibility = Visibility.Collapsed;
-            this.Hide();
+
+            var fadeOut = new DoubleAnimation(Anchor.Opacity, 0, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+            fadeOut.Completed += (s, e) =>
+            {
+                Anchor.Visibility = Visibility.Collapsed;
+                this.Hide();
+            };
+            Anchor.BeginAnimation(OpacityProperty, fadeOut);
         }
     }
 }

@@ -10,7 +10,7 @@
 
  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
  [![Build Status](https://github.com/humanfirework/FlowWheel/actions/workflows/build.yml/badge.svg)](https://github.com/humanfirework/FlowWheel/actions)
-[![Version](https://img.shields.io/badge/version-1.7.4-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
+[![Version](https://img.shields.io/badge/version-1.7.5-green.svg)](https://github.com/humanfirework/FlowWheel/releases)
 
 中文 | [English](./README.en.md)
 
@@ -39,6 +39,12 @@
 | 多窗口同步 | 手动滚动 | 自动同步滚动 |
 | 物理手感 | 无 | 惯性、抓取与抛掷 |
 | 自定义程度 | 有限 | 完全可定制曲线 |
+
+### v1.7.5 更新
+
+- **修复鼠标中键原生功能冲突**：采用「放行优先」策略，延时启动时中键按下不再拦截系统消息，快速点击中键可正常使用浏览器标签关闭、新标签页打开等原生功能；长按超过延时阈值后 FlowWheel 才接管
+- **启动延时、关闭即时**：中键按下后经过延时才激活 FlowWheel，但一旦激活后再次单击中键立即停止，无需额外等待
+- **快捷键冲突检测**：增强热键冲突检测，支持双向比较和鼠标键名匹配
 
 ### v1.7.4 更新
 
@@ -400,7 +406,11 @@ FlowWheel 从设计之初就注重隐私：
 如果 FlowWheel 对你有帮助，欢迎请我喝杯咖啡！☕
 
 <div align="center">
- <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/alipay_qr.png" alt="Alipay" width="180" style="max-width: 100%; height: auto;" />
+ <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/alipay_qr.jpg" alt="Alipay" width="180" style="max-width: 100%; height: auto;" />
  <br>
- <span>扫码支持（支付宝）</span>
+ <span>支付宝</span>
+ <br><br>
+ <img src="https://github.com/humanfirework/FlowWheel/raw/main/Assets/weixin.jpg" alt="WeChat Pay" width="180" style="max-width: 100%; height: auto;" />
+ <br>
+ <span>微信支付</span>
 </div>

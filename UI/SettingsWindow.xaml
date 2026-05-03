@@ -904,7 +904,16 @@
                             <StackPanel HorizontalAlignment="Center">
                                 <TextBlock Text="{DynamicResource SectionSupport}" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{DynamicResource DescSupport}" Style="{StaticResource SettingDescription}" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                                <Image Source="pack://application:,,,/Assets/alipay_qr.png" Width="120" Height="120" Stretch="Uniform"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <StackPanel Margin="0,0,20,0" HorizontalAlignment="Center">
+                                        <Image Source="pack://application:,,,/Assets/alipay_qr.jpg" Width="120" Height="120" Stretch="Uniform"/>
+                                        <TextBlock Text="支付宝" FontSize="12" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Image Source="pack://application:,,,/Assets/weixin.jpg" Width="120" Height="120" Stretch="Uniform"/>
+                                        <TextBlock Text="微信支付" FontSize="12" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

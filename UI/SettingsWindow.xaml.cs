@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using FlowWheel.Core;
 using FlowWheel.UI.Controls;
 using MediaColor = System.Windows.Media.Color;
@@ -27,6 +28,9 @@ namespace FlowWheel.UI
         private bool _isNavigating = false;
         private bool _isListening = false;
         private bool _isReadingModeListening = false;
+        private DispatcherTimer? _starTimer;
+        private List<System.Windows.Shapes.Path>? _starPaths;
+        private (double baseOpacity, double phase, double speed)[] _starStates = Array.Empty<(double, double, double)>();
 
         public SettingsWindow(ScrollEngine engine, AutoScrollManager manager, WindowManager windowManager, MouseHook? mouseHook = null, KeyboardHook? keyboardHook = null)
         {
@@ -132,13 +136,6 @@ namespace FlowWheel.UI
             
             ReadingModeHotkeyInput.Text = ConfigManager.Current.ReadingModeHotkey;
             
-            // 延时启动默认关闭
-            if (ConfigManager.Current.MiddleClickDelay > 0 && ConfigManager.Current.MiddleClickDelay == 150)
-            {
-                // 如果之前是默认开启状态(150ms)，则重置为关闭
-                ConfigManager.Current.MiddleClickDelay = 0;
-                ConfigManager.Save();
-            }
             DelayStartToggle.IsOn = ConfigManager.Current.MiddleClickDelay > 0;
             if (DelayStartToggle.IsOn)
             {
@@ -524,45 +521,51 @@ namespace FlowWheel.UI
         
         private void StartStarTwinkleAnimations()
         {
-            var stars = new[] { DecoStar1, DecoStar2, DecoStar3, DecoStar4, DecoStar5, DecoStar6, DecoStar7, DecoStar8,
-                                DecoStar9, DecoStar10, DecoStar11, DecoStar12, DecoStar13, DecoStar14, DecoStar15,
-                                DecoStar16, DecoStar17, DecoStar18, DecoStar19, DecoStar20, DecoStar21, DecoStar22, DecoStar23 };
-            var random = new Random();
-            
-            for (int i = 0; i < stars.Length; i++)
+            StopStarTwinkleAnimations();
+
+            _starPaths = new List<System.Windows.Shapes.Path>();
+            foreach (var child in StarsCanvas.Children)
             {
-                var star = stars[i];
-                if (star == null) continue;
-                
-                // Random initial delay for each star
-                double initialDelay = random.Next(0, 4000) / 1000.0;
-                
-                // Create twinkling animation with random timing
-                var storyboard = new Storyboard();
-                
-                var opacityAnim = new DoubleAnimationUsingKeyFrames
-                {
-                    RepeatBehavior = RepeatBehavior.Forever,
-                    BeginTime = TimeSpan.FromSeconds(initialDelay)
-                };
-                
-                // Add key frames for twinkling effect
-                double cycleDuration = 2.0 + random.NextDouble() * 3.0; // 2-5 seconds cycle
-                double baseOpacity = 0.3 + random.NextDouble() * 0.3; // Base opacity varies
-                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))));
-                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(Math.Min(1.0, baseOpacity + 0.5), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.25))));
-                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity + 0.2, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.5))));
-                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(Math.Min(1.0, baseOpacity + 0.4), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration * 0.75))));
-                opacityAnim.KeyFrames.Add(new EasingDoubleKeyFrame(baseOpacity, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(cycleDuration))));
-                
-                Storyboard.SetTarget(opacityAnim, star);
-                Storyboard.SetTargetProperty(opacityAnim, new PropertyPath(OpacityProperty));
-                storyboard.Children.Add(opacityAnim);
-                
-                // Store storyboard reference to prevent GC
-                star.Tag = storyboard;
-                storyboard.Begin();
+                if (child is System.Windows.Shapes.Path path)
+                    _starPaths.Add(path);
             }
+
+            var random = new Random();
+            _starStates = new (double, double, double)[_starPaths.Count];
+            for (int i = 0; i < _starStates.Length; i++)
+            {
+                _starStates[i] = (
+                    0.3 + random.NextDouble() * 0.3,
+                    random.NextDouble() * Math.PI * 2,
+                    0.5 + random.NextDouble() * 2.0
+                );
+            }
+
+            _starTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            DateTime startTime = DateTime.Now;
+            _starTimer.Tick += (s, e) =>
+            {
+                if (_starPaths == null) return;
+                double elapsed = (DateTime.Now - startTime).TotalSeconds;
+                for (int i = 0; i < _starPaths.Count && i < _starStates.Length; i++)
+                {
+                    var (baseOpacity, phase, speed) = _starStates[i];
+                    double opacity = baseOpacity + 0.35 * Math.Sin(phase + elapsed * speed);
+                    opacity = Math.Max(0.05, Math.Min(1.0, opacity));
+                    _starPaths[i].Opacity = opacity;
+                }
+            };
+            _starTimer.Start();
+        }
+
+        private void StopStarTwinkleAnimations()
+        {
+            if (_starTimer != null)
+            {
+                _starTimer.Stop();
+                _starTimer = null;
+            }
+            _starPaths = null;
         }
 
         /// <summary>
@@ -853,6 +856,7 @@ namespace FlowWheel.UI
             {
                 ConfigManager.Current.TriggerKey = key;
                 ConfigManager.Save();
+                CheckHotkeyConflicts();
             }
         }
 
@@ -875,12 +879,20 @@ namespace FlowWheel.UI
             string triggerKey = ConfigManager.Current.TriggerKey?.Trim() ?? "";
             string toggleKey = ConfigManager.Current.ToggleHotkey?.Trim() ?? "";
 
-            if (string.IsNullOrEmpty(readingKey)) return;
+            if (string.IsNullOrEmpty(readingKey) && string.IsNullOrEmpty(triggerKey)) return;
 
             bool conflict = false;
-            if (!string.IsNullOrEmpty(triggerKey) && readingKey.Equals(triggerKey, StringComparison.OrdinalIgnoreCase))
+
+            if (!string.IsNullOrEmpty(triggerKey) && !string.IsNullOrEmpty(readingKey)
+                && HotkeyMatcher.AreKeysEqual(triggerKey, readingKey))
                 conflict = true;
-            if (!string.IsNullOrEmpty(toggleKey) && readingKey.Equals(toggleKey, StringComparison.OrdinalIgnoreCase))
+
+            if (!string.IsNullOrEmpty(toggleKey) && !string.IsNullOrEmpty(readingKey)
+                && HotkeyMatcher.AreKeysEqual(toggleKey, readingKey))
+                conflict = true;
+
+            if (!string.IsNullOrEmpty(toggleKey) && !string.IsNullOrEmpty(triggerKey)
+                && HotkeyMatcher.AreKeysEqual(toggleKey, triggerKey))
                 conflict = true;
 
             if (conflict)
@@ -1831,6 +1843,7 @@ namespace FlowWheel.UI
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
+            StopStarTwinkleAnimations();
             Hide();
         }
     }

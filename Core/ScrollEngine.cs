@@ -216,9 +216,11 @@ namespace FlowWheel.Core
                     _currentSpeed = 0;
                     _currentHSpeed = 0;
                 }
-
-                _currentSpeed *= InertiaMultiplier;
-                _currentHSpeed *= InertiaMultiplier;
+                else
+                {
+                    _currentSpeed *= InertiaMultiplier;
+                    _currentHSpeed *= InertiaMultiplier;
+                }
 
                 if (Math.Abs(_currentSpeed) > 100 || Math.Abs(_currentHSpeed) > 100)
                 {
@@ -257,12 +259,15 @@ namespace FlowWheel.Core
         {
             if (CurrentState != ScrollState.Dragging) return;
 
-            long now = Stopwatch.GetTimestamp();
-            _lastPos = _current;
-            _lastPosTime = now;
-            _current = pt;
-            
-            CalculateSpeed();
+            lock (_lock)
+            {
+                long now = Stopwatch.GetTimestamp();
+                _lastPos = _current;
+                _lastPosTime = now;
+                _current = pt;
+
+                CalculateSpeed();
+            }
         }
         
         public void Start(NativeMethods.POINT origin)

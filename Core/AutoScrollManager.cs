@@ -297,8 +297,6 @@ namespace FlowWheel.Core
                 return;
             }
 
-            ParseTriggerKey(ConfigManager.Current.TriggerKey);
-
             bool isTriggerDown = false;
             bool isTriggerUp = false;
 
@@ -372,6 +370,13 @@ namespace FlowWheel.Core
                     return;
                 }
 
+                if (_isActive)
+                {
+                    ExecuteTriggerDown(mode, e.Point);
+                    e.Handled = true;
+                    return;
+                }
+
                 int delay = ConfigManager.Current.MiddleClickDelay;
                 if (delay > 0 && _triggerBaseKey == "MiddleMouse" && !_triggerNeedsCtrl && !_triggerNeedsShift && !_triggerNeedsAlt)
                 {
@@ -384,7 +389,6 @@ namespace FlowWheel.Core
                         _middleClickDelayTimer.Change(delay, System.Threading.Timeout.Infinite);
                     }
 
-                    e.Handled = true;
                     return;
                 }
 
@@ -403,6 +407,19 @@ namespace FlowWheel.Core
                         {
                             _middleClickPending = false;
                             _middleClickDelayTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+                            _delayActivated = false;
+                            return;
+                        }
+                        if (_delayActivated)
+                        {
+                            _delayActivated = false;
+                            if (mode == "Hold" && _isDragging)
+                            {
+                                _isDragging = false;
+                                _engine.ReleaseDrag();
+                                Application.Current.Dispatcher.InvokeAsync(() => _overlay?.HideAnchor());
+                            }
+                            e.Handled = true;
                             return;
                         }
                     }
@@ -414,6 +431,7 @@ namespace FlowWheel.Core
                     _engine.ReleaseDrag();
 
                     Application.Current.Dispatcher.InvokeAsync(() => _overlay?.HideAnchor());
+                    e.Handled = true;
                     return;
                 }
             }
@@ -497,8 +515,11 @@ namespace FlowWheel.Core
                     _middleClickPending = false;
                     _middleClickDelayTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
                 }
+                _delayActivated = false;
             }
         }
+
+        private bool _delayActivated = false;
 
         private void OnMiddleClickDelayElapsed(object? state)
         {
@@ -506,12 +527,37 @@ namespace FlowWheel.Core
             {
                 if (!_middleClickPending) return;
                 _middleClickPending = false;
+                _delayActivated = true;
+            }
+
+            string mode = ConfigManager.Current.TriggerMode;
+            if (mode == "Hold")
+            {
+                SendSyntheticMiddleUp(_pendingClickPoint);
             }
 
             Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                ExecuteTriggerDown(ConfigManager.Current.TriggerMode, _pendingClickPoint);
+                ExecuteTriggerDown(mode, _pendingClickPoint);
             });
+        }
+
+        private void SendSyntheticMiddleUp(NativeMethods.POINT pt)
+        {
+            var input = new NativeMethods.INPUT
+            {
+                type = NativeMethods.INPUT_MOUSE,
+                mi = new NativeMethods.MOUSEINPUT
+                {
+                    dx = pt.x,
+                    dy = pt.y,
+                    mouseData = 0,
+                    dwFlags = NativeMethods.MOUSEEVENTF_MIDDLEUP,
+                    time = 0,
+                    dwExtraInfo = MouseHook.INJECTED_SIGNATURE
+                }
+            };
+            NativeMethods.SendInput(1, new[] { input }, System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.INPUT)));
         }
 
         private NativeMethods.POINT _currentOrigin;
